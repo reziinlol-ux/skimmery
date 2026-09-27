@@ -20,7 +20,7 @@ export function Chicken() {
   </svg>;
 }
 
-export function Car({ color = 'gold' }) {
+export function Car({ color = 'gold', variant = 'compact' }) {
   const palettes = {
     gold: { shadow: '#805c27', body: '#e7a93f', light: '#ffd275', dark: '#a66b28', glass: '#355264' },
     blue: { shadow: '#21415d', body: '#498ed1', light: '#a4d5fa', dark: '#285f9b', glass: '#263f55' },
@@ -28,22 +28,29 @@ export function Car({ color = 'gold' }) {
     mint: { shadow: '#27624f', body: '#43b58c', light: '#b1f0ce', dark: '#23785d', glass: '#294854' },
   };
   const paint = palettes[color] || palettes.blue;
+  const models = {
+    compact: { body: 'M27 5h46c12 0 19 19 19 46v100c0 28-11 43-42 43s-42-15-42-43V51C8 24 15 5 27 5Z', glass: 'M21 58q29-9 58 0l-5 46q-24 10-48 0Z' },
+    coupe: { body: 'M50 5c21 4 35 20 36 47l-5 98c-2 26-13 40-31 45-18-5-29-19-31-45l-5-98C15 25 29 9 50 5Z', glass: 'M29 60q21-15 42 0l-3 39q-18 9-36 0Z' },
+    suv: { body: 'M21 7h58c10 0 15 11 16 29l3 111c1 28-10 44-48 46-38-2-49-18-48-46l3-111C6 18 11 7 21 7Z', glass: 'M18 55q32-8 64 0l-2 53q-30 9-60 0Z' },
+    van: { body: 'M20 6h60c9 0 13 7 13 18v134c0 23-12 37-43 37s-43-14-43-37V24C7 13 11 6 20 6Z', glass: 'M17 38q33-4 66 0v69q-33 8-66 0Z' },
+  };
+  const model = models[variant] || models.compact;
   return <svg className="car-art" viewBox="0 0 100 200" aria-hidden="true">
     <ellipse cx="50" cy="111" rx="42" ry="88" fill="#06111d" opacity=".38"/>
-    <rect x="7" y="38" width="12" height="37" rx="5" fill="#101a25"/><rect x="81" y="38" width="12" height="37" rx="5" fill="#101a25"/>
-    <rect x="7" y="139" width="12" height="37" rx="5" fill="#101a25"/><rect x="81" y="139" width="12" height="37" rx="5" fill="#101a25"/>
-    <rect x="9" y="44" width="8" height="22" rx="3" fill="#465360"/><rect x="83" y="44" width="8" height="22" rx="3" fill="#465360"/>
-    <path d="M27 5h46c12 0 19 19 19 46v100c0 28-11 43-42 43s-42-15-42-43V51C8 24 15 5 27 5Z" fill={paint.shadow}/>
-    <path d="M27 7h46c9 0 14 19 14 43v99c0 24-10 37-37 37s-37-13-37-37V50C13 26 18 7 27 7Z" fill={paint.body}/>
-    <path d="M19 52q31-12 62 0l-4 12q-27-7-54 0Z" fill={paint.light} opacity=".83"/>
-    <path d="M21 58q29-9 58 0l-5 46q-24 10-48 0Z" fill={paint.glass}/>
-    <path d="M26 65q21-7 46-1l-2 12q-22-4-46 2Z" fill="#b8dded" opacity=".22"/>
-    <path d="M21 109q29 10 58 0l5 17q-33 14-68 0Z" fill={paint.light}/>
-    <path d="M25 132q25 9 50 0l-4 31q-21 8-42 0Z" fill={paint.dark}/>
-    <path d="M30 135q20 6 40 0" fill="none" stroke={paint.light} strokeWidth="2" opacity=".75"/>
-    <rect x="21" y="174" width="17" height="6" rx="3" fill="#fff2bf"/><rect x="62" y="174" width="17" height="6" rx="3" fill="#fff2bf"/>
-    <rect x="23" y="41" width="15" height="5" rx="2" fill="#f8fbff" opacity=".9"/><rect x="62" y="41" width="15" height="5" rx="2" fill="#f8fbff" opacity=".9"/>
-    <path d="M42 185h16" stroke="#15212c" strokeWidth="5" strokeLinecap="round"/><path d="M25 86h50" stroke="#ffffff20" strokeWidth="2"/>
+    <rect x="5" y="40" width="13" height="37" rx="5" fill="#101a25"/><rect x="82" y="40" width="13" height="37" rx="5" fill="#101a25"/>
+    <rect x="5" y="137" width="13" height="37" rx="5" fill="#101a25"/><rect x="82" y="137" width="13" height="37" rx="5" fill="#101a25"/>
+    <path d={model.body} fill={paint.shadow} />
+    <path d={model.body} fill={paint.body} transform="translate(0 2) scale(.98  .98) translate(1 1)" />
+    <path d={model.glass} fill={paint.glass}/>
+    <path d="M27 65q23-7 46-1l-2 12q-22-4-46 2Z" fill="#c4e4f2" opacity=".28"/>
+    {variant === 'van' ? <><path d="M18 122h64v29q-32 12-64 0Z" fill={paint.dark}/><path d="M24 48h19v22H24zm33 0h19v22H57z" fill="#91b8ca" opacity=".22"/></> : <><path d="M21 109q29 10 58 0l5 17q-33 14-68 0Z" fill={paint.light}/><path d="M25 132q25 9 50 0l-4 31q-21 8-42 0Z" fill={paint.dark}/></>}
+    {variant === 'suv' && <><path d="M23 33h54" stroke={paint.dark} strokeWidth="4"/><path d="M25 116h50" stroke={paint.light} strokeWidth="2" opacity=".7"/></>}
+    {variant === 'coupe' && <path d="M30 112q20 5 40 0l5 23q-25 8-50 0Z" fill={paint.light}/>}
+    <rect x="20" y="174" width="17" height="6" rx="3" fill="#fff2bf"/><rect x="63" y="174" width="17" height="6" rx="3" fill="#fff2bf"/>
+    <rect x="23" y="35" width="15" height="6" rx="2" fill="#f8fbff"/><rect x="62" y="35" width="15" height="6" rx="2" fill="#f8fbff"/>
+    {variant === 'van' && <path d="M26 11h48" stroke={paint.light} strokeWidth="3" strokeLinecap="round"/>}
+    {variant === 'coupe' && <path d="M32 11h36" stroke={paint.light} strokeWidth="3" strokeLinecap="round"/>}
+    <path d="M42 185h16" stroke="#15212c" strokeWidth="5" strokeLinecap="round"/>
   </svg>;
 }
 
