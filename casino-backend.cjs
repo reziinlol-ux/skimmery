@@ -144,7 +144,9 @@ module.exports = function register({ app, pool, route, currentUser, requireSameO
           if(!double.DOUBLE_OUTCOMES.some(item=>item.key===options.pick)) fail(400,'Choose a Double outcome.');
           outcome=double.spinDouble();payout=double.doublePayout(stake,options.pick,outcome);completed=true;
         } else if(game==='crash') {
-          round.state={startedAt:Date.now(),crashAt:crash.sampleCrashPoint(),multiplier:1};
+          const autoCashout=options.autoCashout===undefined || options.autoCashout===null || options.autoCashout==='' ? null : Number(options.autoCashout);
+          if(autoCashout!==null && (!Number.isFinite(autoCashout) || autoCashout<1.5 || autoCashout>100)) fail(400,'Crash auto cashout must be between 1.50× and 100×.');
+          round.state={startedAt:Date.now(),crashAt:crash.sampleCrashPoint(),multiplier:1,autoCashout};
         } else {
           if(!wheel.WHEEL_RISKS[options.risk]) fail(400,'Choose a risk.');
           round.state={risk:options.risk,wins:0,multiplier:1};
@@ -159,8 +161,10 @@ module.exports = function register({ app, pool, route, currentUser, requireSameO
         const currentMultiplier=crash.crashMultiplier(Date.now()-state.startedAt);
         state.multiplier=currentMultiplier;
         const crashed=currentMultiplier>=state.crashAt;
-        outcome={crashed,currentMultiplier:crashed?state.crashAt:currentMultiplier};
+        const autoCashedOut=!crashed && state.autoCashout!==null && state.autoCashout!==undefined && currentMultiplier>=state.autoCashout;
         if(crashed) completed=true;
+        else if(autoCashedOut) { state.multiplier=state.autoCashout;payout=crash.crashPayout(round.stake,state.autoCashout);completed=true; }
+        outcome={crashed,autoCashedOut,currentMultiplier:crashed?state.crashAt:autoCashedOut?state.autoCashout:currentMultiplier};
       } else if(round.game==='wheel' && (action==='start' || action==='spin')) {
         outcome=wheel.spinWheel(state.risk,state.wins);state.lastOutcome=outcome;
         if(outcome.multiplier===null) completed=true;
@@ -182,8 +186,9 @@ module.exports = function register({ app, pool, route, currentUser, requireSameO
         else if(round.game==='tower' && state.cleared>0) payout=tower.towerCashout(round.stake,state.cleared,state.difficulty);
         else if(round.game==='crash') {
           const currentMultiplier=crash.crashMultiplier(Date.now()-state.startedAt), crashed=currentMultiplier>=state.crashAt;
-          outcome={crashed,currentMultiplier:crashed?state.crashAt:currentMultiplier};
-          if(!crashed) payout=crash.crashPayout(round.stake,currentMultiplier);
+          const autoCashedOut=!crashed && state.autoCashout!==null && state.autoCashout!==undefined && currentMultiplier>=state.autoCashout;
+          outcome={crashed,autoCashedOut,cashout:!crashed,currentMultiplier:crashed?state.crashAt:autoCashedOut?state.autoCashout:currentMultiplier};
+          if(!crashed) { const payoutMultiplier=autoCashedOut?state.autoCashout:currentMultiplier;state.multiplier=payoutMultiplier;payout=crash.crashPayout(round.stake,payoutMultiplier); }
         }
         else fail(409,'Make a successful move before cashing out.');
         completed=true;

@@ -111,8 +111,8 @@ export function CrashGame({ credits, locked, startRound, finishRound, gameAction
     else settle(true, localMultiplier);
   };
 
-  const extent = Math.min(1, elapsedMs / 12000);
-  const rise = Math.min(1, Math.log(Math.max(1, multiplier)) / Math.log(12));
+  const extent = Math.min(1, elapsedMs / 50000);
+  const rise = Math.min(1, Math.log(Math.max(1, multiplier)) / Math.log(100));
   const chartX = 24 + 552 * extent;
   const chartY = 342 - 286 * rise;
   const graph = (() => {
@@ -129,7 +129,8 @@ export function CrashGame({ credits, locked, startRound, finishRound, gameAction
     <section className="game-controls side-control-panel crash-controls" aria-label="Crash controls">
       <div className="game-panel-heading"><span>CRASH</span><h2>Know when to leave</h2><p>Cash out before the multiplier drops.</p></div>
       <label className="stake-field"><span>Play amount</span><div className="stake-input-wrap"><input aria-label="Crash bet" type="number" min="10" step="1" value={stakeText} onChange={(event) => setStakeText(event.target.value)} disabled={locked || busy || phase === 'running'} /><span>CR</span></div></label>
-      {phase === 'running' ? <Button variant="primary" className="game-action-button crash-cashout" onClick={cashOut} disabled={busy || finished.current}>Cash out · {formatCredits(crashPayout(stakeRef.current, multiplier))} CR</Button> : <Button variant="primary" className="game-action-button" onClick={play} disabled={locked || busy || !Number.isSafeInteger(stake) || stake < 10 || stake > credits}>{phase === 'crashed' || phase === 'cashed' ? 'Play again' : 'Start round'}</Button>}
+      <label className="stake-field crash-auto-field"><span>Auto cashout <small>optional</small></span><div className="stake-input-wrap"><input aria-label="Crash auto cashout multiplier, minimum 1.5 times" type="number" min="1.5" max="100" step="0.1" value={autoCashoutText} onChange={(event) => setAutoCashoutText(event.target.value)} disabled={locked || busy || phase === 'running'} placeholder="1.50× minimum" /><span>×</span></div><small className={'crash-auto-hint' + (autoCashoutText && !autoCashoutValid ? ' invalid' : '')}>{autoCashoutText && !autoCashoutValid ? 'Enter a target from 1.50× to 100×.' : 'Leave blank to cash out manually.'}</small></label>
+      {phase === 'running' ? <Button variant="primary" className="game-action-button crash-cashout" onClick={cashOut} disabled={busy || finished.current}>Cash out · {formatCredits(crashPayout(stakeRef.current, multiplier))} CR</Button> : <Button variant="primary" className="game-action-button" onClick={play} disabled={locked || busy || !Number.isSafeInteger(stake) || stake < 10 || stake > credits || !autoCashoutValid}>{phase === 'crashed' || phase === 'cashed' ? 'Play again' : 'Start round'}</Button>}
       <div className={'crash-round-status ' + phase} aria-live="polite">{resultText}</div>
       <div className="crash-cashout-note">Your bet is returned only when you cash out in time.</div>
     </section>
