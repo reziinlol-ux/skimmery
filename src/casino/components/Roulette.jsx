@@ -29,7 +29,7 @@ const sector = (start, end) => {
   return 'M' + a.join(',') + ' A170,170 0 0,1 ' + b.join(',') + ' L' + c.join(',') + ' A106,106 0 0,0 ' + d.join(',') + 'Z';
 };
 
-function Wheel({ rotation, ballRotation, spinning, reduced }) {
+function Wheel({ rotation, ballRotation, ballRun, spinning, reduced }) {
   const roll = useMotionValue(0);
   return <div className="roulette-wheel-scene" aria-label="European roulette wheel">
     <div className="roulette-wheel-perspective">
@@ -38,15 +38,15 @@ function Wheel({ rotation, ballRotation, spinning, reduced }) {
         <defs><radialGradient id="wheel-rim"><stop offset=".72" stopColor="#444649"/><stop offset=".88" stopColor="#6b6d70"/><stop offset="1" stopColor="#3b3d40"/></radialGradient></defs>
         <circle cx="200" cy="200" r="198" fill="#35373a"/><circle cx="200" cy="200" r="190" fill="url(#wheel-rim)"/><circle cx="200" cy="200" r="172" fill="#262729"/>
       </svg>
-      <motion.svg className="roulette-wheel-disc" viewBox="0 0 400 400" animate={{ rotate: rotation }} transition={{ duration: reduced ? 0 : spinning ? 5.05 : 0, ease: [.2,.28,.18,1] }} aria-hidden="true">
+      <motion.svg className="roulette-wheel-disc" viewBox="0 0 400 400" animate={{ rotate: rotation }} transition={{ duration: reduced ? 0 : spinning ? 7.4 : 0, ease: [.32,.06,.6,1] }} aria-hidden="true">
         {WHEEL_ORDER.map((number, index) => {
           const angle = (index + .5) * step, pos = point(157, angle);
           return <g key={number}><path d={sector(index * step, (index + 1) * step)} fill={number === 0 ? '#00c878' : RED_NUMBERS.has(number) ? '#ff3048' : '#202124'} stroke="#ffffff08" strokeWidth=".6"/><text x={pos[0]} y={pos[1]} fill="#fff" fontSize="10" fontWeight="700" textAnchor="middle" dominantBaseline="middle" transform={'rotate(' + angle + ' ' + pos[0] + ' ' + pos[1] + ')'}>{number}</text></g>;
         })}
         <circle cx="200" cy="200" r="106" fill="#45474b"/>
       </motion.svg>
-      <motion.div className="roulette-ball-orbit" initial={false} animate={{ rotate: ballRotation, opacity: spinning ? 1 : 0 }} onUpdate={(latest) => roll.set(Number(latest.rotate) || 0)} transition={{ rotate: { duration: reduced ? 0 : spinning ? 5 : 0, ease: [.2,.3,.18,1] }, opacity: { duration: reduced ? 0 : .16, ease: 'easeOut' } }}>
-        <motion.div className="roulette-ball-anchor" animate={{ rotate: -ballRotation }} transition={{ duration: reduced ? 0 : spinning ? 5 : 0, ease: [.2,.3,.18,1] }}>
+      <motion.div className="roulette-ball-orbit" initial={false} animate={{ rotate: ballRotation }} onUpdate={(latest) => roll.set(Number(latest.rotate) || 0)} transition={{ rotate: { duration: reduced ? 0 : spinning ? 7.4 : 0, ease: [.32,.06,.6,1] } }}>
+        <motion.div key={ballRun} className="roulette-ball-anchor" initial={{ y: ballRun === 0 ? 40 : 0, rotate: -ballRotation }} animate={{ rotate: -ballRotation, y: 40 }} transition={{ rotate: { duration: reduced ? 0 : spinning ? 7.4 : 0, ease: [.32,.06,.6,1] }, y: { duration: reduced ? 0 : spinning ? 7.4 : 0, ease: [.32,.06,.6,1] } }}>
           <span className="roulette-ball-billboard"><RouletteBall roll={roll} /></span>
         </motion.div>
       </motion.div>
@@ -72,6 +72,7 @@ export function Roulette({ credits, locked, startRound, finishRound }) {
   const [result, setResult] = useState(null);
   const [rotation, setRotation] = useState(0);
   const [ballRotation, setBallRotation] = useState(0);
+  const [ballRun, setBallRun] = useState(0);
   const rotationRef = useRef(0);
   const ballRef = useRef(0);
   const busy = useRef(false);
@@ -140,7 +141,7 @@ export function Roulette({ credits, locked, startRound, finishRound }) {
     const currentAngle = ((rotationRef.current % 360) + 360) % 360;
     rotationRef.current += 360 * 11 + ((targetAngle - currentAngle + 360) % 360);
     ballRef.current -= 360 * 14;
-    setRotation(rotationRef.current); setBallRotation(ballRef.current);
+    setRotation(rotationRef.current); setBallRotation(ballRef.current); setBallRun((run) => run + 1);
     setResult(null); setSpinning(true);
     casinoSound('spin');
     window.setTimeout(() => {
@@ -148,7 +149,7 @@ export function Roulette({ credits, locked, startRound, finishRound }) {
       casinoSound(settlement.net > 0 ? 'win' : 'loss');
       finishRound({ game: 'roulette', summary: String(outcome), stake: total, net: settlement.net, won: settlement.net > 0, payout: settlement.returned, outcome }, settlement.returned);
       busy.current = false;
-    }, reduced ? 30 : 5200);
+    }, reduced ? 30 : 7500);
   };
   const amountFor = (key) => bets.find((bet) => bet.key === key)?.amount;
   const labelFor = (group) => group.type === 'column' ? '2:1' : group.type === 'dozen' ? ['1 to 12','13 to 24','25 to 36'][group.value - 1] : group.label;
@@ -172,7 +173,7 @@ export function Roulette({ credits, locked, startRound, finishRound }) {
   };
 
   return <div className="roulette-game">
-    <Wheel rotation={rotation} ballRotation={ballRotation} spinning={spinning} reduced={reduced} />
+    <Wheel rotation={rotation} ballRotation={ballRotation} ballRun={ballRun} spinning={spinning} reduced={reduced} />
     {result !== null && <span className="sr-only" role="status">{result}: {rouletteOutcomeDetails(result).map((item) => item.label).join(', ')}</span>}
     <div className="roulette-betting">
       <div className="roulette-table-scroll"><div className="roulette-table" aria-label="Roulette betting table">
