@@ -3,13 +3,13 @@ import { Check, Clock3, History, X } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui.jsx';
 import { formatCredits } from '../logic/storage.js';
 
-const gameName = { roulette: 'Roulette', tower: 'Tower', coinflip: 'Coin Flip' };
+const gameName = { roulette: 'Roulette', tower: 'Tower', coinflip: 'Coin Flip', 'coin-flip': 'Coin Flip', 'chicken-cross': 'Chicken Cross', wheel: 'Wheel', double: 'Double', crash: 'Crash' };
 
 export function HistoryList({ rows }) {
   return (
     <Card className="overflow-hidden">
       <CardHeader className="pb-4">
-        <div className="space-y-1"><CardTitle className="flex items-center gap-2"><History size={16} className="text-white/40" /> Recent rounds</CardTitle><CardDescription>Latest results across all three games.</CardDescription></div>
+        <div className="space-y-1"><CardTitle className="flex items-center gap-2"><History size={16} className="text-white/40" /> Recent rounds</CardTitle><CardDescription>Latest results across your games.</CardDescription></div>
         <span className="rounded-full border border-white/[.07] px-2.5 py-1 text-[10px] font-semibold tabular-nums text-white/40">{rows.length} / 60</span>
       </CardHeader>
       <CardContent className="p-0">

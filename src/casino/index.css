@@ -459,6 +459,7 @@ body.roulette-game-active { height: 100dvh; overflow: hidden; }
 .lane-marker.next { border-color: #61a5ff; background: linear-gradient(155deg,#315d8b,#1c3450); color: #e5f2ff; box-shadow: inset 0 1px 0 #ffffff38,0 6px 0 #14202b,0 0 22px #4d9cff35; }
 .lane-marker.cleared { border-color: #dfab52; color: #ffe2a0; }
 .road-chicken { filter: drop-shadow(0 10px 7px #07111baa); }
+.road-chicken .chicken-art { transform: perspective(400px) rotateX(10deg) rotateZ(-7deg); transform-origin: center 78%; filter: drop-shadow(0 5px 3px #06101b70); }
 .lane-car { filter: drop-shadow(0 9px 7px #07111b99); }
 .roadblock { filter: drop-shadow(0 8px 5px #07111b99); }
 .tower-game { width: min(100%,1360px); }
@@ -538,6 +539,7 @@ body.roulette-game-active { height: 100dvh; overflow: hidden; }
 .crash-fill { fill: url(#crash-fill); }.crash-line { fill: none; stroke: #4f9cff; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 8px #3d8fff9c); }
 .crash-dot { fill: #d7eaff; filter: drop-shadow(0 0 8px #48a0ff); }
 .crash-board.crashed .crash-line { stroke: #ff6475; filter: drop-shadow(0 0 8px #ff647588); }.crash-board.cashed .crash-line { stroke: #8bc2ff; }
+.crash-board.crashed .crash-dot { fill: #ffe2e4; filter: drop-shadow(0 0 8px #ff6475); }
 
 @media (max-width: 760px) {
   .game-side-layout, .wheel-game-layout { grid-template-columns: minmax(0,1fr); gap: 14px; }

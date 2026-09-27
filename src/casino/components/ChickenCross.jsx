@@ -113,7 +113,7 @@ export function ChickenCross({ credits, locked, startRound, finishRound, gameAct
           return <div className={'road-lane' + (cleared ? ' cleared' : '') + (hitLane === index ? ' hit' : '')} key={index}>
             <button type="button" className={'lane-marker' + (current ? ' next' : '') + (cleared ? ' cleared' : '')} disabled={!current || busy} onClick={cross} aria-label={'Cross to ' + multiplier.toFixed(2) + ' times'}><span>{multiplier.toFixed(2)}×</span></button>
             {cleared && <motion.div className="roadblock" initial={{ opacity: 0, y: reduced ? 0 : -24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .3 }}><Roadblock /></motion.div>}
-            {hitLane === index && <div className="lane-car car-hit"><Car color={index % 3 ? 'blue' : 'gold'} /></div>}
+            {hitLane === index && <div className="lane-car car-hit"><Car color={['blue','coral','mint','gold'][index % 4]} /></div>}
           </div>;
         })}
         <motion.div className={'road-chicken' + (phase === 'busted' ? ' dead' : '')} initial={false} animate={{ x: visualStep * 150, y: busy && !reduced ? [0,-16,0] : 0, opacity: phase === 'busted' ? 0 : 1, scaleY: 1 }} transition={{ x: { duration: reduced ? 0 : .34, ease: [.25,.8,.2,1] }, y: { duration: reduced ? 0 : .34 }, opacity: { duration: phase === 'busted' ? 0 : .18 }, scaleY: { duration: .24 } }}><Chicken /></motion.div>
