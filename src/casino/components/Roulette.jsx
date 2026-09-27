@@ -174,7 +174,7 @@ export function Roulette({ credits, locked, startRound, finishRound }) {
           {customEditing && <motion.form id="roulette-custom-editor" className="roulette-custom-editor" onSubmit={saveCustomAmount}
             initial={{ opacity: 0, x: reduced ? 0 : 6 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: reduced ? 0 : 4 }} transition={{ duration: reduced ? 0 : .22, delay: reduced ? 0 : .12, ease: [.22,1,.36,1] }}>
+            exit={{ opacity: 0, x: reduced ? 0 : 3 }} transition={{ duration: reduced ? 0 : .2, delay: reduced ? 0 : .16, ease: [.22,1,.36,1] }}>
             <input ref={customInput} type="text" inputMode="numeric" pattern="[0-9]+" value={customDraft} placeholder="Min. 10" aria-label="Custom chip amount, whole credits, minimum 10" disabled={isLocked}
               aria-invalid={customDraft !== '' && !validCustomAmount} onChange={(event) => { if (/^\d*$/.test(event.target.value)) setCustomDraft(event.target.value); }}
               onKeyDown={(event) => { if (event.key === 'Escape') { event.preventDefault(); closeCustomEditor(); } }} />
