@@ -38,7 +38,6 @@ export function WheelGame({ credits, locked, startRound, finishRound, gameAction
   const riskConfig = WHEEL_RISKS[risk];
   const segments = useMemo(() => wheelSegments(risk), [risk]);
   const nextPayouts = riskConfig.multipliers.map((value) => multiplyWheelMultiplier(multiplier, value));
-  const cashoutValue = wheelCashout(roundStake.current, multiplier);
   const inRound = phase === 'spinning' || phase === 'playing';
 
   useEffect(() => () => window.clearTimeout(timerRef.current), []);
@@ -115,7 +114,6 @@ export function WheelGame({ credits, locked, startRound, finishRound, gameAction
       <section className="wheel-controls" aria-label="Wheel controls">
         <label className="stake-field"><span>Bet</span><div className="stake-input-wrap"><input aria-label="Wheel bet" type="number" min="10" step="1" value={stakeText} onChange={(event) => setStakeText(event.target.value)} disabled={locked || inRound || busy} /><span>CR</span></div></label>
         <div className="wheel-risk-field"><span>Risk</span><div className="wheel-risk-picker" role="group" aria-label="Wheel risk">{Object.entries(WHEEL_RISKS).map(([key, option]) => <button key={key} type="button" className={risk === key ? 'selected' : ''} aria-pressed={risk === key} disabled={locked || inRound || busy} onClick={() => setRisk(key)}>{option.label}</button>)}</div></div>
-        <div className="wheel-payout-card"><span>Cash out</span><strong>{inRound ? `${formatCredits(cashoutValue)} CR` : lastResult?.multiplier === null ? 'Round lost' : phase === 'cashed' ? `${formatCredits(cashoutValue)} CR` : '—'}</strong></div>
         {!inRound ? <Button className="game-action-button" variant="primary" onClick={placeBet} disabled={locked || busy || !Number.isFinite(stake) || stake < 10 || stake > credits}>{phase === 'ready' || phase === 'busted' || phase === 'cashed' ? 'Bet & spin' : 'Spin'}</Button> : <div className="wheel-action-row">
           <Button className="game-action-button" variant="secondary" onClick={cashOut} disabled={phase !== 'playing' || busy}>Cash out</Button>
           <Button className="game-action-button" variant="primary" onClick={() => spin()} disabled={phase !== 'playing' || busy}>Spin again</Button>

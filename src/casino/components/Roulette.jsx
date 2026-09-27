@@ -161,9 +161,9 @@ export function Roulette({ credits, locked, startRound, finishRound }) {
         <div className="outside-bets">{['low','even','red','black','odd','high'].map(groupButton)}</div>
         <button type="button" className="table-tool table-clear" disabled={isLocked || !bets.length} onClick={clear} aria-label="Clear bets"><RotateCcw size={18} /></button>
       </div></div>
-    <div className={'roulette-chip-row' + (customEditing ? ' custom-chip-open' : '')} role="group" aria-label="Bet amount, chip size, and spin">
+    <div className="roulette-chip-row" role="group" aria-label="Bet amount, chip size, and spin">
       <span className="wager-total">{formatCredits(total)} <small>bet</small></span>
-      <div className={"roulette-chip-options" + (customEditing ? " custom-chip-open" : "")} aria-label="Chip size">{chipSizes.map((size, i) => <button type="button" key={size} className={'casino-chip chip-' + i + (!customSelected && chip === size ? ' selected' : '')} disabled={isLocked} onClick={() => { setChip(size); setCustomSelected(false); setCustomEditing(false); }} aria-label={size + ' credit chip'} aria-pressed={!customSelected && chip === size}><ChipArtwork value={size} color={chipColor(size)} /></button>)}
+      <div className="roulette-chip-options" aria-label="Chip size">{chipSizes.map((size, i) => <button type="button" key={size} className={'casino-chip chip-' + i + (!customSelected && chip === size ? ' selected' : '')} disabled={isLocked} onClick={() => { setChip(size); setCustomSelected(false); setCustomEditing(false); }} aria-label={size + ' credit chip'} aria-pressed={!customSelected && chip === size}><ChipArtwork value={size} color={chipColor(size)} /></button>)}
       <div className={'roulette-custom-chip' + (customSelected ? ' active' : '') + (customEditing ? ' editing' : '')}>
         <button type="button" className="custom-chip-preview" disabled={isLocked} aria-label={customAmount === null ? 'Set a custom chip amount' : `Select ${customAmount} credit custom chip`} aria-pressed={customSelected} onClick={() => {
           if (customAmount === null) openCustomEditor();
