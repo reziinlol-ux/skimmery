@@ -72,7 +72,6 @@ export function Tower({ credits, locked, startRound, finishRound, gameAction, ac
       {phase === 'busted' && <span className="tower-round-status lost" role="status">Lost</span>}{phase === 'cashed' && <span className="tower-round-status won" role="status">Won</span>}
     </div>
     <div className="tower-scene game-scene-panel">
-    <div className="tower-scene">
       <div className="tower-masonry" aria-hidden="true" />
       <div className="tower-grid" aria-label="Tower tiles">{Array.from({ length: TOWER_FLOORS }, (_, row) => {
         const index = TOWER_FLOORS - 1 - row, floor = floors?.[index];
@@ -89,7 +88,6 @@ export function Tower({ credits, locked, startRound, finishRound, gameAction, ac
           </motion.button>;
         })}</div>;
       })}</div>
-    </div>
   </div>;
 }
 

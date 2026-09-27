@@ -21,18 +21,29 @@ export function Chicken() {
 }
 
 export function Car({ color = 'gold' }) {
-  const gold = color === 'gold';
+  const palettes = {
+    gold: { shadow: '#805c27', body: '#e7a93f', light: '#ffd275', dark: '#a66b28', glass: '#355264' },
+    blue: { shadow: '#21415d', body: '#498ed1', light: '#a4d5fa', dark: '#285f9b', glass: '#263f55' },
+    coral: { shadow: '#793b43', body: '#e65c68', light: '#ffabb1', dark: '#a83c4e', glass: '#3f3544' },
+    mint: { shadow: '#27624f', body: '#43b58c', light: '#b1f0ce', dark: '#23785d', glass: '#294854' },
+  };
+  const paint = palettes[color] || palettes.blue;
   return <svg className="car-art" viewBox="0 0 100 200" aria-hidden="true">
-    <ellipse cx="50" cy="108" rx="42" ry="89" fill="#000" opacity=".22"/>
-    <rect x="7" y="38" width="10" height="35" rx="4" fill="#171717"/><rect x="83" y="38" width="10" height="35" rx="4" fill="#171717"/>
-    <rect x="7" y="140" width="10" height="35" rx="4" fill="#171717"/><rect x="83" y="140" width="10" height="35" rx="4" fill="#171717"/>
-    <path d="M25 5h50c11 0 17 18 17 46v101c0 29-12 42-42 42s-42-13-42-42V51C8 23 14 5 25 5Z" fill={gold ? '#b48743' : '#526b86'}/>
-    <path d="M28 7h44c10 0 14 20 14 42v104c0 22-10 34-36 34s-36-12-36-34V49C14 27 18 7 28 7Z" fill={gold ? '#e8bc6a' : '#8aa6bd'}/>
-    <path d="M23 33q27-9 54 0l-3 13H26Z" fill="#a6b3bd"/><path d="m27 47-8 65 14-8V58Zm46 0 8 65-14-8V58Z" fill="#687a85"/>
-    <path d="m26 96 48 0 6 27q-30 12-60 0Z" fill="#c5d1d9"/><path d="m30 99 12 26m6-26 11 28" stroke="#e7eef2" strokeWidth="4" opacity=".7"/>
-    <path d="M22 136q28 11 56 0l-6 30H28Z" fill={gold ? '#edc978' : '#9db3c4'}/>
-    <rect x="24" y="177" width="16" height="5" rx="2" fill="#fff1bd"/><rect x="60" y="177" width="16" height="5" rx="2" fill="#fff1bd"/>
-    <path d="M41 184h18" stroke="#5d5546" strokeWidth="5" strokeLinecap="round"/><rect x="35" y="83" width="30" height="7" rx="2" fill="#e9e3c8"/>
+    <ellipse cx="50" cy="111" rx="42" ry="88" fill="#06111d" opacity=".38"/>
+    <rect x="7" y="38" width="12" height="37" rx="5" fill="#101a25"/><rect x="81" y="38" width="12" height="37" rx="5" fill="#101a25"/>
+    <rect x="7" y="139" width="12" height="37" rx="5" fill="#101a25"/><rect x="81" y="139" width="12" height="37" rx="5" fill="#101a25"/>
+    <rect x="9" y="44" width="8" height="22" rx="3" fill="#465360"/><rect x="83" y="44" width="8" height="22" rx="3" fill="#465360"/>
+    <path d="M27 5h46c12 0 19 19 19 46v100c0 28-11 43-42 43s-42-15-42-43V51C8 24 15 5 27 5Z" fill={paint.shadow}/>
+    <path d="M27 7h46c9 0 14 19 14 43v99c0 24-10 37-37 37s-37-13-37-37V50C13 26 18 7 27 7Z" fill={paint.body}/>
+    <path d="M19 52q31-12 62 0l-4 12q-27-7-54 0Z" fill={paint.light} opacity=".83"/>
+    <path d="M21 58q29-9 58 0l-5 46q-24 10-48 0Z" fill={paint.glass}/>
+    <path d="M26 65q21-7 46-1l-2 12q-22-4-46 2Z" fill="#b8dded" opacity=".22"/>
+    <path d="M21 109q29 10 58 0l5 17q-33 14-68 0Z" fill={paint.light}/>
+    <path d="M25 132q25 9 50 0l-4 31q-21 8-42 0Z" fill={paint.dark}/>
+    <path d="M30 135q20 6 40 0" fill="none" stroke={paint.light} strokeWidth="2" opacity=".75"/>
+    <rect x="21" y="174" width="17" height="6" rx="3" fill="#fff2bf"/><rect x="62" y="174" width="17" height="6" rx="3" fill="#fff2bf"/>
+    <rect x="23" y="41" width="15" height="5" rx="2" fill="#f8fbff" opacity=".9"/><rect x="62" y="41" width="15" height="5" rx="2" fill="#f8fbff" opacity=".9"/>
+    <path d="M42 185h16" stroke="#15212c" strokeWidth="5" strokeLinecap="round"/><path d="M25 86h50" stroke="#ffffff20" strokeWidth="2"/>
   </svg>;
 }
 

@@ -21,6 +21,7 @@ export function CrashGame({ credits, locked, startRound, finishRound, gameAction
   const crashAt = useRef(1);
   const actionPending = useRef(false);
   const finished = useRef(false);
+  const serverRoundActive = useRef(false);
   const lastTick = useRef(0);
   const activeRef = useRef(active);
   activeRef.current = active;
@@ -53,8 +54,8 @@ export function CrashGame({ credits, locked, startRound, finishRound, gameAction
         previousDraw = now;
         const current = crashMultiplier(Date.now() - startTime.current);
         setMultiplier(current);
-        if (!locked && current >= crashAt.current) { settle(false, crashAt.current); return; }
-        if (locked && now - lastTick.current > 450 && !actionPending.current) {
+        if (!serverRoundActive.current && current >= crashAt.current) { settle(false, crashAt.current); return; }
+        if (serverRoundActive.current && now - lastTick.current > 450 && !actionPending.current) {
           lastTick.current = now;
           actionPending.current = true;
           gameAction('crash-check').then((response) => {
@@ -77,6 +78,7 @@ export function CrashGame({ credits, locked, startRound, finishRound, gameAction
     setBusy(true); finished.current = false; actionPending.current = false;
     const round = await startRound(stake, 'crash');
     if (!round) { setBusy(false); return; }
+    serverRoundActive.current = !round.demo;
     stakeRef.current = stake;
     startTime.current = round.demo ? Date.now() : Number(round.round?.startedAt) || Date.now();
     crashAt.current = round.demo ? sampleCrashPoint() : Number.POSITIVE_INFINITY;
@@ -86,10 +88,10 @@ export function CrashGame({ credits, locked, startRound, finishRound, gameAction
   };
 
   const cashOut = async () => {
-    if (phase !== 'running' || busy || finished.current || actionPending.current) return;
+    if (phase !== 'running' || busy || finished.current) return;
     setBusy(true); actionPending.current = true;
     const localMultiplier = crashMultiplier(Date.now() - startTime.current);
-    if (locked) {
+    if (serverRoundActive.current) {
       const response = await gameAction('cashout');
       actionPending.current = false;
       if (!response) { setBusy(false); return; }
@@ -102,8 +104,10 @@ export function CrashGame({ credits, locked, startRound, finishRound, gameAction
     else settle(true, localMultiplier);
   };
 
+  const extent = Math.min(1, Math.log(Math.max(1, multiplier)) / Math.log(12));
+  const chartX = 24 + 552 * extent;
+  const chartY = multiplier > 1 ? 56 : 342;
   const graph = (() => {
-    const extent = Math.min(1, Math.log(Math.max(1, multiplier)) / Math.log(12));
     const points = Array.from({ length: 24 }, (_, index) => {
       const p = index / 23;
       const x = 24 + 552 * extent * p;
@@ -125,7 +129,7 @@ export function CrashGame({ credits, locked, startRound, finishRound, gameAction
       <div className="crash-chart-grid" aria-hidden="true"><i /><i /><i /><i /></div>
       <div className="crash-chart-label">{phase === 'running' ? 'IN FLIGHT' : phase === 'crashed' ? 'CRASHED' : phase === 'cashed' ? 'CASHED OUT' : 'READY'}</div>
       <motion.strong key={plotKey} className="crash-multiplier" animate={{ color: phase === 'crashed' ? '#ff6475' : '#60a9ff', scale: phase === 'running' && !reduced ? [1, 1.035, 1] : 1 }} transition={{ scale: { duration: 1.4, repeat: phase === 'running' ? Infinity : 0 } }}>{multiplierText(multiplier)}</motion.strong>
-      <svg className="crash-chart" viewBox="0 0 600 380" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="crash-fill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="#398fff" stopOpacity=".3" /><stop offset="1" stopColor="#398fff" stopOpacity="0" /></linearGradient></defs><path className="crash-fill" d={`${graph} L${(24 + 552 * Math.min(1, Math.log(Math.max(1, multiplier)) / Math.log(12))).toFixed(1)},380 L24,380 Z`} /><path className="crash-line" d={graph} /><circle className="crash-dot" cx={(24 + 552 * Math.min(1, Math.log(Math.max(1, multiplier)) / Math.log(12))).toFixed(1)} cy="56" r="6" /></svg>
+      <svg className="crash-chart" viewBox="0 0 600 380" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="crash-fill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="#398fff" stopOpacity=".3" /><stop offset="1" stopColor="#398fff" stopOpacity="0" /></linearGradient></defs><path className="crash-fill" d={`${graph} L${chartX.toFixed(1)},380 L24,380 Z`} /><path className="crash-line" d={graph} /><circle className="crash-dot" cx={chartX.toFixed(1)} cy={chartY} r="6" /></svg>
     </section>
   </div>;
 }
