@@ -3,7 +3,7 @@
   const $ = (id) => document.getElementById(id);
   const format = (n) => Number(n || 0).toLocaleString('en-US');
   const money = (credits) => `$${(Number(credits || 0) / 100).toFixed(2)}`;
-  const state = { user: null, balance: 0, topups: 0, unreadPurchases: 0, dailyClaimed: false, testTopupsEnabled: false, walletCurrency: 'credits', orders: [], notifications: [], pending: null };
+  const state = { user: null, balance: 0, topups: 0, unreadPurchases: 0, dailyClaimed: false, testTopupsEnabled: false, accountOrdersEnabled: false, walletCurrency: 'credits', orders: [], notifications: [], pending: null };
   let toastTimer;
   let openPopover = null;
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -71,11 +71,15 @@
     $('bonus-claim').disabled = !canClaim || state.dailyClaimed;
     document.querySelectorAll('.buy-button').forEach((button) => {
       const cost = Number(button.dataset.cost);
-      button.disabled = Boolean(state.user) && state.balance < cost;
-      button.querySelector('span').textContent = !state.user ? 'Sign in to continue' : state.balance < cost ? 'Not enough credits' : button.dataset.product === 'basic' ? 'Choose Basic' : 'Choose Cosmetic Account';
+      const unavailable = !state.accountOrdersEnabled;
+      button.disabled = unavailable || (Boolean(state.user) && state.balance < cost);
+      button.title = unavailable ? 'Account orders are paused until compliant inventory and secure delivery are configured.' : '';
+      button.setAttribute('aria-label', unavailable ? 'Account orders unavailable until inventory and delivery are configured' : button.textContent.trim());
+      button.querySelector('span').textContent = unavailable ? 'Unavailable' : !state.user ? 'Sign in to continue' : state.balance < cost ? 'Not enough credits' : button.dataset.product === 'basic' ? 'Choose Basic' : 'Choose Cosmetic Account';
     });
     document.querySelectorAll('.credit-button').forEach((button) => {
       button.disabled = Boolean(state.user) && !state.testTopupsEnabled;
+      button.title = state.testTopupsEnabled ? '' : 'Credit checkout is not configured on this deployment.';
       button.textContent = `${money(button.dataset.credits)} USD`;
     });
   };
@@ -177,6 +181,7 @@
   });
   const askSignIn = () => setAuthDialog(true);
   const openPurchase = (button) => {
+    if (!state.accountOrdersEnabled) return showToast('Account orders are paused until compliant inventory and secure delivery are configured. No credits were charged.');
     if (!state.user) return askSignIn();
     const product = products[button.dataset.product]; if (!product) return;
     if (state.balance < product.cost) { showToast('Add credits before choosing this account.'); return; }
@@ -294,7 +299,7 @@
   if (location.hash === '#signin-error') { $('auth-error').hidden = false; $('auth-error').textContent = 'Google sign-in could not be completed. Please try again.'; setAuthDialog(); }
   const isCasinoPage = ['roulette', 'tower', 'coin-flip', 'chicken-cross', 'wheel', 'double', 'crash'].includes(initialPage);
   if (isCasinoPage) nav(initialPage);
-  api('/api/config').then((data) => { state.testTopupsEnabled = Boolean(data.testTopupsEnabled); document.querySelector('.google-signin').hidden = !data.googleClientId; updateWallet(); }).catch(() => {});
+  api('/api/config').then((data) => { state.testTopupsEnabled = Boolean(data.testTopupsEnabled); state.accountOrdersEnabled = Boolean(data.accountOrdersEnabled); document.querySelector('.google-signin').hidden = !data.googleClientId; updateWallet(); }).catch(() => {});
   loadMe().then(() => { updateWallet(); if (!isCasinoPage) nav(initialPage); });
 })();
 

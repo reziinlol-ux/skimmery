@@ -104,7 +104,7 @@ export function CrashGame({ credits, locked, startRound, finishRound, gameAction
       if (!response) { setBusy(false); return; }
       const settledAt = Number(response.outcome?.currentMultiplier) || localMultiplier;
       if (response.outcome?.crashed || response.completed && !response.payout) settle(false, settledAt);
-      else settle(true, settledAt);
+      else settle(true, settledAt, Boolean(response.outcome?.autoCashedOut));
       return;
     }
     if (localMultiplier >= crashAt.current) settle(false, crashAt.current);
@@ -138,7 +138,7 @@ export function CrashGame({ credits, locked, startRound, finishRound, gameAction
       <div className="crash-chart-grid" aria-hidden="true"><i /><i /><i /><i /></div>
       <div className="crash-chart-label">{phase === 'running' ? 'IN FLIGHT' : phase === 'crashed' ? 'CRASHED' : phase === 'cashed' ? 'CASHED OUT' : 'READY'}</div>
       <motion.strong key={plotKey} className="crash-multiplier" animate={{ color: phase === 'crashed' ? '#ff6475' : '#60a9ff', scale: phase === 'running' && !reduced ? [1, 1.035, 1] : 1 }} transition={{ scale: { duration: 1.4, repeat: phase === 'running' ? Infinity : 0 } }}>{multiplierText(multiplier)}</motion.strong>
-      <svg className="crash-chart" viewBox="0 0 600 380" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="crash-fill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="#398fff" stopOpacity=".3" /><stop offset="1" stopColor="#398fff" stopOpacity="0" /></linearGradient></defs><path className="crash-fill" d={`${graph} L${chartX.toFixed(1)},380 L24,380 Z`} /><path className="crash-line" d={graph} /><circle className="crash-dot" cx={chartX.toFixed(1)} cy={chartY} r="6" /></svg>
+      <svg className="crash-chart" viewBox="0 0 600 380" preserveAspectRatio="none" aria-hidden="true"><path className="crash-fill" d={`${graph} L${chartX.toFixed(1)},380 L24,380 Z`} /><path className="crash-line" d={graph} /><circle className="crash-dot" cx={chartX.toFixed(1)} cy={chartY} r="6" /></svg>
     </section>
   </div>;
 }

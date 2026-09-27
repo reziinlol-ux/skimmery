@@ -40,7 +40,7 @@ export function Car({ color = 'gold', variant = 'compact' }) {
     <rect x="5" y="40" width="13" height="37" rx="5" fill="#101a25"/><rect x="82" y="40" width="13" height="37" rx="5" fill="#101a25"/>
     <rect x="5" y="137" width="13" height="37" rx="5" fill="#101a25"/><rect x="82" y="137" width="13" height="37" rx="5" fill="#101a25"/>
     <path d={model.body} fill={paint.shadow} />
-    <path d={model.body} fill={paint.body} transform="translate(0 2) scale(.98  .98) translate(1 1)" />
+    <path d={model.body} fill={paint.body} stroke={paint.shadow} strokeWidth="2" />
     <path d={model.glass} fill={paint.glass}/>
     <path d="M27 65q23-7 46-1l-2 12q-22-4-46 2Z" fill="#c4e4f2" opacity=".28"/>
     {variant === 'van' ? <><path d="M18 122h64v29q-32 12-64 0Z" fill={paint.dark}/><path d="M24 48h19v22H24zm33 0h19v22H57z" fill="#91b8ca" opacity=".22"/></> : <><path d="M21 109q29 10 58 0l5 17q-33 14-68 0Z" fill={paint.light}/><path d="M25 132q25 9 50 0l-4 31q-21 8-42 0Z" fill={paint.dark}/></>}

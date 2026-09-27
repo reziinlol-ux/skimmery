@@ -152,7 +152,7 @@ app.get('/api/health', route(async (_req, res) => {
   await pool.query('select 1');
   res.json({ ok: true, version: 'casino-wallet-20260927', uiHash: crypto.createHash('sha256').update(fs.readFileSync(path.join(root, 'casino-dist/casino-app.js'))).digest('hex').slice(0, 16) });
 }));
-app.get('/api/config', (_req, res) => res.json({ googleClientId: oauthClientId(), databaseConfigured: Boolean(process.env.DATABASE_URL), testTopupsEnabled, emailConfigured: Boolean(pendingKey), emailVerificationRequired: false, localEmailPreview: !production && !process.env.RESEND_API_KEY }));
+app.get('/api/config', (_req, res) => res.json({ googleClientId: oauthClientId(), databaseConfigured: Boolean(process.env.DATABASE_URL), testTopupsEnabled, accountOrdersEnabled: false, emailConfigured: Boolean(pendingKey), emailVerificationRequired: false, localEmailPreview: !production && !process.env.RESEND_API_KEY }));
 app.use('/api', (req, res, next) => {
   if (!process.env.DATABASE_URL && req.path !== '/config' && req.path !== '/health') return sendError(res, 503, 'database_not_configured', 'Marketplace database is not configured.');
   next();
@@ -268,7 +268,7 @@ app.post('/api/test-topups', requireSameOrigin, currentUser, route(async (req, r
   if (![900, 1600, 2000, 3000, 10000].includes(credits)) return sendError(res, 400, 'invalid_package', 'Choose one of the listed credit packages.');
   const idempotencyKey = req.get('idempotency-key') || '';
   if (!isIdempotencyKey(idempotencyKey)) return sendError(res, 400, 'idempotency_required', 'Refresh and try again.');
-  await withinLimit(`topup:${req.user.id}`, 5, 3600);
+  await withinLimit(`topup:${req.user.id}`, 25, 3600);
   const data = await userTransaction(req, async (db) => {
     await db.query("select set_config('app.allow_test_topups', 'true', true)");
     const existing = await db.query('select amount from marketplace_orders where user_id=$1 and idempotency_key=$2', [req.user.id, idempotencyKey]);
