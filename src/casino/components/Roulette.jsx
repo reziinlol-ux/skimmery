@@ -46,7 +46,7 @@ function Wheel({ rotation, ballRotation, ballRun, spinning, reduced }) {
         <circle cx="200" cy="200" r="106" fill="#45474b"/>
       </motion.svg>
       <motion.div className="roulette-ball-orbit" initial={false} animate={{ rotate: ballRotation }} onUpdate={(latest) => roll.set(Number(latest.rotate) || 0)} transition={{ rotate: { duration: reduced ? 0 : spinning ? 7.4 : 0, ease: [.32,.06,.6,1] } }}>
-        <motion.div key={ballRun} className="roulette-ball-anchor" initial={{ y: ballRun === 0 ? 40 : 0, rotate: -ballRotation }} animate={{ rotate: -ballRotation, y: 40 }} transition={{ rotate: { duration: reduced ? 0 : spinning ? 7.4 : 0, ease: [.32,.06,.6,1] }, y: { duration: reduced ? 0 : spinning ? 7.4 : 0, ease: [.32,.06,.6,1] } }}>
+        <motion.div key={ballRun} className="roulette-ball-anchor" initial={{ y: ballRun === 0 ? 40 : 18, rotate: -ballRotation }} animate={{ rotate: -ballRotation, y: 52 }} transition={{ rotate: { duration: reduced ? 0 : spinning ? 7.4 : 0, ease: [.32,.06,.6,1] }, y: { duration: reduced ? 0 : spinning ? 7.4 : 0, ease: [.32,.06,.6,1] } }}>
           <span className="roulette-ball-billboard"><RouletteBall roll={roll} /></span>
         </motion.div>
       </motion.div>
@@ -172,7 +172,7 @@ export function Roulette({ credits, locked, startRound, finishRound }) {
     return <button key={n} type="button" disabled={isLocked || customEditing} onClick={() => addBet(numberBet(n))} aria-label={'Bet on ' + n} className={'roulette-bet roulette-number ' + pocketClass(n) + (amount ? ' has-bet bet-selected' : '') + (result === n ? ' landed-match' : '')}><span>{n}</span>{amount && placedChip(key)}</button>;
   };
 
-  return <div className="roulette-game">
+  return <div className="roulette-game game-side-layout roulette-side-layout">
     <Wheel rotation={rotation} ballRotation={ballRotation} ballRun={ballRun} spinning={spinning} reduced={reduced} />
     {result !== null && <span className="sr-only" role="status">{result}: {rouletteOutcomeDetails(result).map((item) => item.label).join(', ')}</span>}
     <div className="roulette-betting">

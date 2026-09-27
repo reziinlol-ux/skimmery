@@ -88,6 +88,7 @@ export function Tower({ credits, locked, startRound, finishRound, gameAction, ac
           </motion.button>;
         })}</div>;
       })}</div>
+    </div>
   </div>;
 }
 
