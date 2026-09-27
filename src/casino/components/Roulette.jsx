@@ -1,20 +1,21 @@
-import React, { useMemo, useRef, useState } from 'react';
-import { motion, useMotionValue, useReducedMotion } from 'motion/react';
-import { RotateCcw, Undo2 } from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { AnimatePresence, motion, useMotionValue, useReducedMotion } from 'motion/react';
+import { Pencil, RotateCcw, Undo2 } from 'lucide-react';
 import { Button } from './ui.jsx';
 import { RouletteBall } from './RouletteBall.jsx';
 import { RED_NUMBERS, WHEEL_ORDER, betWins, netOddsForBet, rouletteGroups, rouletteOutcomeDetails, settleRoulette, spinRoulette } from '../logic/roulette.js';
 import { casinoSound } from '../logic/sound.js';
 import { formatCredits } from '../logic/storage.js';
 
-const chipColor = (amount) => amount >= 500 ? '#a68548' : amount > 200 ? '#3a73aa' : amount === 200 ? '#8065ab' : amount >= 100 ? '#303136' : amount >= 50 ? '#46836e' : amount >= 25 ? '#a64d55' : '#3a73aa';
+const chipColor = (amount) => amount >= 500 ? '#a68548' : amount >= 200 ? '#8065ab' : amount >= 100 ? '#303136' : amount >= 50 ? '#46836e' : amount >= 25 ? '#a64d55' : '#3a73aa';
 function ChipArtwork({ value, color }) {
+  const label = value == null ? '–' : formatCredits(value);
   return <svg className="chip-artwork" viewBox="0 0 100 100" aria-hidden="true">
     <circle cx="50" cy="50" r="47" fill={color} stroke="#d8e0ea" strokeWidth="2" />
     {Array.from({ length: 16 }, (_, i) => <path key={i} d="M47 4H53V13H47Z" fill="#e7edf4" transform={`rotate(${i * 22.5} 50 50)`} />)}
     <circle cx="50" cy="50" r="35" fill="none" stroke="#e7edf4" strokeWidth="2" />
     <circle cx="50" cy="50" r="30" fill="none" stroke="#ffffff55" strokeWidth="1" />
-    <text x="50" y="51" textAnchor="middle" dominantBaseline="middle" fill="#fff" fontFamily="DM Sans, sans-serif" fontWeight="700" fontSize={String(value).length > 3 ? 20 : 25}>{formatCredits(value)}</text>
+    <text x="50" y="51" textAnchor="middle" dominantBaseline="middle" fill="#fff" fontFamily="DM Sans, sans-serif" fontWeight="700" fontSize={Math.max(11, 25 - Math.max(0, label.length - 3) * 3)} textLength={label.length > 6 ? 56 : undefined} lengthAdjust="spacingAndGlyphs">{label}</text>
   </svg>;
 }
 
@@ -57,6 +58,12 @@ function Wheel({ rotation, ballRotation, spinning, reduced }) {
 export function Roulette({ credits, locked, startRound, finishRound }) {
   const [bets, setBets] = useState([]);
   const [chip, setChip] = useState(10);
+  const [customAmount, setCustomAmount] = useState(null);
+  const [customSelected, setCustomSelected] = useState(false);
+  const [customEditing, setCustomEditing] = useState(false);
+  const [customDraft, setCustomDraft] = useState('');
+  const customInput = useRef(null);
+  const customPen = useRef(null);
   const [spinning, setSpinning] = useState(false);
   const [result, setResult] = useState(null);
   const [rotation, setRotation] = useState(0);
@@ -68,9 +75,28 @@ export function Roulette({ credits, locked, startRound, finishRound }) {
   const reduced = useReducedMotion();
   const total = useMemo(() => bets.reduce((sum, bet) => sum + bet.amount, 0), [bets]);
   const isLocked = locked || spinning;
+  const draftAmount = Number(customDraft);
+  const validCustomAmount = /^\d+$/.test(customDraft) && Number.isSafeInteger(draftAmount) && draftAmount >= 10;
+  useEffect(() => {
+    if (customEditing) { customInput.current?.focus(); customInput.current?.select(); }
+  }, [customEditing]);
+  const openCustomEditor = () => {
+    if (isLocked || busy.current) return;
+    setCustomDraft(String(customAmount ?? chip));
+    setCustomEditing(true);
+  };
+  const closeCustomEditor = () => { setCustomEditing(false); customPen.current?.focus(); };
+  const saveCustomAmount = (event) => {
+    event.preventDefault();
+    if (!validCustomAmount || isLocked || busy.current) return;
+    setCustomAmount(draftAmount);
+    setChip(draftAmount);
+    setCustomSelected(true);
+    closeCustomEditor();
+  };
 
   const addBet = (bet) => {
-    if (isLocked || busy.current || total + chip > credits) return;
+    if (isLocked || customEditing || busy.current || total + chip > credits) return;
     undoRef.current.push(bets);
     setBets((current) => {
       const previous = current.find((entry) => entry.key === bet.key);
@@ -81,7 +107,7 @@ export function Roulette({ credits, locked, startRound, finishRound }) {
   const undo = () => { if (!isLocked && undoRef.current.length) setBets(undoRef.current.pop()); };
   const clear = () => { if (!isLocked) { setBets([]); undoRef.current = []; } };
   const play = async () => {
-    if (busy.current || isLocked || total < 10) return;
+    if (busy.current || isLocked || customEditing || total < 10) return;
     busy.current = true;
     const round = await startRound(total, 'roulette', { bets });
     if (!round) { busy.current = false; return; }
@@ -112,14 +138,14 @@ export function Roulette({ credits, locked, startRound, finishRound }) {
   };
   const groupButton = (key) => {
     const group = rouletteGroups.find((item) => item.key === key), amount = amountFor(key);
-    return <button key={key} type="button" disabled={isLocked} onClick={() => addBet(group)} className={'roulette-bet roulette-group ' + (amount ? 'has-bet ' : '') + (result !== null && betWins(group, result) ? 'winning-bet' : '')} aria-label={'Bet on ' + group.label + ', pays ' + (group.type === 'column' ? '2 to 1' : netOddsForBet(group).toFixed(2) + ' to 1')}>
+    return <button key={key} type="button" disabled={isLocked || customEditing} onClick={() => addBet(group)} className={'roulette-bet roulette-group ' + (amount ? 'has-bet ' : '') + (result !== null && betWins(group, result) ? 'winning-bet' : '')} aria-label={'Bet on ' + group.label + ', pays ' + (group.type === 'column' ? '2 to 1' : netOddsForBet(group).toFixed(2) + ' to 1')}>
       {group.type === 'color' ? <span className={'color-diamond ' + group.value} /> : <span>{labelFor(group)}</span>}
       {amount && placedChip(key)}
     </button>;
   };
   const numberButton = (n) => {
     const key = 'number-' + n, amount = amountFor(key);
-    return <button key={n} type="button" disabled={isLocked} onClick={() => addBet(numberBet(n))} aria-label={'Bet on ' + n} className={'roulette-bet roulette-number ' + pocketClass(n) + (amount ? ' has-bet' : '') + (result === n ? ' winning-number' : '')}><span>{n}</span>{amount && placedChip(key)}</button>;
+    return <button key={n} type="button" disabled={isLocked || customEditing} onClick={() => addBet(numberBet(n))} aria-label={'Bet on ' + n} className={'roulette-bet roulette-number ' + pocketClass(n) + (amount ? ' has-bet' : '') + (result === n ? ' winning-number' : '')}><span>{n}</span>{amount && placedChip(key)}</button>;
   };
 
   return <div className="roulette-game">
@@ -137,8 +163,28 @@ export function Roulette({ credits, locked, startRound, finishRound }) {
       </div></div>
     <div className="roulette-chip-row" role="group" aria-label="Bet amount, chip size, and spin">
       <span className="wager-total">{formatCredits(total)} <small>bet</small></span>
-      <div className="roulette-chip-options" aria-label="Chip size">{chipSizes.map((size, i) => <button type="button" key={size} className={'casino-chip chip-' + i + (chip === size ? ' selected' : '')} disabled={isLocked} onClick={() => setChip(size)} aria-label={size + ' credit chip'} aria-pressed={chip === size}><ChipArtwork value={size} color={chipColor(size)} /></button>)}</div>
-      <Button className="roulette-spin-button" variant="primary" onClick={play} disabled={isLocked || total < 10 || total > credits}>{spinning ? 'Spinning…' : 'Spin'}</Button>
+      <div className="roulette-chip-options" aria-label="Chip size">{chipSizes.map((size, i) => <button type="button" key={size} className={'casino-chip chip-' + i + (!customSelected && chip === size ? ' selected' : '')} disabled={isLocked} onClick={() => { setChip(size); setCustomSelected(false); setCustomEditing(false); }} aria-label={size + ' credit chip'} aria-pressed={!customSelected && chip === size}><ChipArtwork value={size} color={chipColor(size)} /></button>)}</div>
+      <div className={'roulette-custom-chip' + (customSelected ? ' active' : '')}>
+        <button type="button" className="custom-chip-preview" disabled={isLocked} aria-label={customAmount === null ? 'Set a custom chip amount' : `Select ${customAmount} credit custom chip`} aria-pressed={customSelected} onClick={() => {
+          if (customAmount === null) openCustomEditor();
+          else { setChip(customAmount); setCustomSelected(true); setCustomEditing(false); }
+        }}><ChipArtwork value={customAmount} color={customAmount === null ? '#8065ab' : chipColor(customAmount)} /></button>
+        <button ref={customPen} type="button" className="custom-chip-pen" disabled={isLocked} onClick={openCustomEditor} aria-label="Edit custom chip amount" aria-expanded={customEditing} aria-controls="roulette-custom-editor"><Pencil size={14} /></button>
+        <AnimatePresence initial={false}>
+          {customEditing && <motion.form id="roulette-custom-editor" className="roulette-custom-editor" onSubmit={saveCustomAmount}
+            initial={{ opacity: 0, x: reduced ? 0 : 8, clipPath: reduced ? 'inset(0 0 0 0)' : 'inset(0 0 0 75% round 24px)' }}
+            animate={{ opacity: 1, x: 0, clipPath: 'inset(0 0 0 0 round 24px)' }}
+            exit={{ opacity: 0, x: reduced ? 0 : 8 }} transition={{ duration: reduced ? 0 : .22, ease: [.22,1,.36,1] }}>
+            <span className="custom-editor-chip"><ChipArtwork value={validCustomAmount ? draftAmount : null} color={validCustomAmount ? chipColor(draftAmount) : '#8065ab'} /></span>
+            <input ref={customInput} type="text" inputMode="numeric" pattern="[0-9]+" value={customDraft} placeholder="Min. 10" aria-label="Custom chip amount, whole credits, minimum 10" disabled={isLocked}
+              aria-invalid={customDraft !== '' && !validCustomAmount} onChange={(event) => { if (/^\d*$/.test(event.target.value)) setCustomDraft(event.target.value); }}
+              onKeyDown={(event) => { if (event.key === 'Escape') { event.preventDefault(); closeCustomEditor(); } }} />
+            <button type="button" className="custom-editor-undo" onClick={closeCustomEditor}>Undo</button>
+            <button type="submit" className="custom-editor-save" disabled={!validCustomAmount || isLocked}>Save</button>
+          </motion.form>}
+        </AnimatePresence>
+      </div>
+      <Button className="roulette-spin-button" variant="primary" onClick={play} disabled={isLocked || customEditing || total < 10 || total > credits}>{spinning ? 'Spinning…' : 'Spin'}</Button>
     </div>
     </div>
   </div>;
