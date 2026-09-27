@@ -426,8 +426,8 @@ body.roulette-game-active { height: 100dvh; overflow: hidden; }
 .roulette-betting .wager-total small { color: #e1e8f4; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .8px; }
 .wheel-spindle { z-index: 5; filter: drop-shadow(0 4px 3px #0008); }
 .wheel-spindle span { height: 25px; background: radial-gradient(ellipse at 40% 28%,#e8bb5c,#ba8d36 78%); box-shadow: inset 0 2px 1px #f5d48766,0 4px 0 #8f6828; }
-.roulette-side-layout { max-width: 1360px; grid-template-columns: minmax(480px,1.08fr) minmax(340px,.92fr); grid-template-areas: "bets wheel"; align-items: center; gap: clamp(16px,2vw,28px); }
-.roulette-side-layout > .roulette-wheel-scene { grid-area: wheel; height: min(65vh,540px); }
+.roulette-side-layout { max-width: 980px; grid-template-columns: minmax(0,1fr); grid-template-areas: "wheel" "bets"; align-items: start; gap: 8px; }
+.roulette-side-layout > .roulette-wheel-scene { grid-area: wheel; height: clamp(300px,46vh,440px); }
 .roulette-side-layout > .roulette-betting { grid-area: bets; width: 100%; max-width: none; margin: 0; padding: 16px; border: 1px solid #ffffff12; border-radius: 14px; background: linear-gradient(155deg,#222a38,#1a202b 70%); box-shadow: 0 16px 42px #05091435; }
 .roulette-side-layout .roulette-table { grid-template-columns: 38px minmax(0,1fr) 38px; grid-template-rows: repeat(3,38px) 35px 35px; gap: 4px; }
 .roulette-side-layout .roulette-chip-row { margin: 14px -16px 0; padding: 14px 12px 0; border-top: 1px solid #ffffff12; }
