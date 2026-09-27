@@ -160,9 +160,9 @@ module.exports = function register({ app, pool, route, currentUser, requireSameO
       if(action==='crash-check' && round.game==='crash') {
         const currentMultiplier=crash.crashMultiplier(Date.now()-state.startedAt);
         state.multiplier=currentMultiplier;
-        const crashed=currentMultiplier>=state.crashAt;
-        const autoCashedOut=!crashed && state.autoCashout!==null && state.autoCashout!==undefined && currentMultiplier>=state.autoCashout;
-        if(crashed) completed=true;
+        const autoCashedOut=state.autoCashout!==null && state.autoCashout!==undefined && state.autoCashout<state.crashAt && currentMultiplier>=state.autoCashout;
+        const crashed=!autoCashedOut && currentMultiplier>=state.crashAt;
+        if(crashed) { state.multiplier=state.crashAt;completed=true; }
         else if(autoCashedOut) { state.multiplier=state.autoCashout;payout=crash.crashPayout(round.stake,state.autoCashout);completed=true; }
         outcome={crashed,autoCashedOut,currentMultiplier:crashed?state.crashAt:autoCashedOut?state.autoCashout:currentMultiplier};
       } else if(round.game==='wheel' && (action==='start' || action==='spin')) {
@@ -185,10 +185,12 @@ module.exports = function register({ app, pool, route, currentUser, requireSameO
         else if(round.game==='chicken-cross' && state.steps>0) payout=chicken.crossCashout(round.stake,state.steps,state.difficulty);
         else if(round.game==='tower' && state.cleared>0) payout=tower.towerCashout(round.stake,state.cleared,state.difficulty);
         else if(round.game==='crash') {
-          const currentMultiplier=crash.crashMultiplier(Date.now()-state.startedAt), crashed=currentMultiplier>=state.crashAt;
-          const autoCashedOut=!crashed && state.autoCashout!==null && state.autoCashout!==undefined && currentMultiplier>=state.autoCashout;
+          const currentMultiplier=crash.crashMultiplier(Date.now()-state.startedAt);
+          const autoCashedOut=state.autoCashout!==null && state.autoCashout!==undefined && state.autoCashout<state.crashAt && currentMultiplier>=state.autoCashout;
+          const crashed=!autoCashedOut && currentMultiplier>=state.crashAt;
           outcome={crashed,autoCashedOut,cashout:!crashed,currentMultiplier:crashed?state.crashAt:autoCashedOut?state.autoCashout:currentMultiplier};
-          if(!crashed) { const payoutMultiplier=autoCashedOut?state.autoCashout:currentMultiplier;state.multiplier=payoutMultiplier;payout=crash.crashPayout(round.stake,payoutMultiplier); }
+          if(crashed) state.multiplier=state.crashAt;
+          else { const payoutMultiplier=autoCashedOut?state.autoCashout:currentMultiplier;state.multiplier=payoutMultiplier;payout=crash.crashPayout(round.stake,payoutMultiplier); }
         }
         else fail(409,'Make a successful move before cashing out.');
         completed=true;

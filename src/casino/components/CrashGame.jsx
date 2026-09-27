@@ -61,7 +61,7 @@ export function CrashGame({ credits, locked, startRound, finishRound, gameAction
         setMultiplier(current);
         if (!serverRoundActive.current && autoCashout !== null && current >= autoCashout && autoCashout < crashAt.current) { settle(true, autoCashout, true); return; }
         if (!serverRoundActive.current && current >= crashAt.current) { settle(false, crashAt.current); return; }
-        if (serverRoundActive.current && now - lastTick.current > 450 && !actionPending.current) {
+        if (serverRoundActive.current && now - lastTick.current > 850 && !actionPending.current) {
           lastTick.current = now;
           actionPending.current = true;
           gameAction('crash-check').then((response) => {
