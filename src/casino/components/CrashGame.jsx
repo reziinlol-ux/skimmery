@@ -11,6 +11,7 @@ export function CrashGame({ credits, locked, startRound, finishRound, gameAction
   const [stakeText, setStakeText] = useState('10');
   const [phase, setPhase] = useState('ready');
   const [multiplier, setMultiplier] = useState(1);
+  const [elapsedMs, setElapsedMs] = useState(0);
   const [busy, setBusy] = useState(false);
   const [resultText, setResultText] = useState('Place a bet to start');
   const [plotKey, setPlotKey] = useState(0);
@@ -28,7 +29,7 @@ export function CrashGame({ credits, locked, startRound, finishRound, gameAction
 
   useEffect(() => {
     if (!active && (phase === 'crashed' || phase === 'cashed')) {
-      setPhase('ready'); setMultiplier(1); setResultText('Place a bet to start');
+      setPhase('ready'); setMultiplier(1); setElapsedMs(0); setResultText('Place a bet to start');
     }
   }, [active, phase]);
 
@@ -53,6 +54,7 @@ export function CrashGame({ credits, locked, startRound, finishRound, gameAction
       if (now - previousDraw > 45) {
         previousDraw = now;
         const current = crashMultiplier(Date.now() - startTime.current);
+        setElapsedMs(Date.now() - startTime.current);
         setMultiplier(current);
         if (!serverRoundActive.current && current >= crashAt.current) { settle(false, crashAt.current); return; }
         if (serverRoundActive.current && now - lastTick.current > 450 && !actionPending.current) {
@@ -71,7 +73,7 @@ export function CrashGame({ credits, locked, startRound, finishRound, gameAction
     };
     frame = window.requestAnimationFrame(draw);
     return () => window.cancelAnimationFrame(frame);
-  }, [phase, locked, gameAction]);
+  }, [phase, locked, gameAction, active]);
 
   const play = async () => {
     if (locked || busy || phase === 'running' || !Number.isSafeInteger(stake) || stake < 10 || stake > credits) return;
@@ -82,7 +84,7 @@ export function CrashGame({ credits, locked, startRound, finishRound, gameAction
     stakeRef.current = stake;
     startTime.current = round.demo ? Date.now() : Number(round.round?.startedAt) || Date.now();
     crashAt.current = round.demo ? sampleCrashPoint() : Number.POSITIVE_INFINITY;
-    setMultiplier(1); setPlotKey((key) => key + 1); setPhase('running'); setResultText('In flight'); setBusy(false);
+    setMultiplier(1); setElapsedMs(0); setPlotKey((key) => key + 1); setPhase('running'); setResultText('In flight'); setBusy(false);
     lastTick.current = 0;
     casinoSound('spin');
   };
@@ -104,14 +106,15 @@ export function CrashGame({ credits, locked, startRound, finishRound, gameAction
     else settle(true, localMultiplier);
   };
 
-  const extent = Math.min(1, Math.log(Math.max(1, multiplier)) / Math.log(12));
+  const extent = Math.min(1, elapsedMs / 12000);
+  const rise = Math.min(1, Math.log(Math.max(1, multiplier)) / Math.log(12));
   const chartX = 24 + 552 * extent;
-  const chartY = multiplier > 1 ? 56 : 342;
+  const chartY = 342 - 286 * rise;
   const graph = (() => {
     const points = Array.from({ length: 24 }, (_, index) => {
       const p = index / 23;
       const x = 24 + 552 * extent * p;
-      const y = 342 - (Math.exp(Math.log(Math.max(1, multiplier)) * p) - 1) / Math.max(.001, multiplier - 1) * 286;
+      const y = 342 - 286 * rise * Math.pow(p, 1.55);
       return `${index ? 'L' : 'M'}${x.toFixed(1)},${y.toFixed(1)}`;
     });
     return points.join(' ');
