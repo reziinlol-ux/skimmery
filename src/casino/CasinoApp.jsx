@@ -6,13 +6,15 @@ import { Roulette } from './components/Roulette.jsx';
 import { Tower } from './components/Tower.jsx';
 import { ChickenCross } from './components/ChickenCross.jsx';
 import { WheelGame } from './components/WheelGame.jsx';
+import { DoubleGame } from './components/DoubleGame.jsx';
+import { CrashGame } from './components/CrashGame.jsx';
 import { Button } from './components/ui.jsx';
 import { WinPopup } from './components/WinPopup.jsx';
 import { setCasinoMuted } from './logic/sound.js';
 import { roundCredits } from './logic/roulette.js';
 import { formatCredits, readCasinoState, STARTING_CREDITS, writeCasinoState } from './logic/storage.js';
 
-const games = { roulette: 'Roulette', 'chicken-cross': 'Chicken Cross', tower: 'Tower', 'coin-flip': 'Coin Flip', wheel: 'Wheel' };
+const games = { roulette: 'Roulette', 'chicken-cross': 'Chicken Cross', tower: 'Tower', 'coin-flip': 'Coin Flip', wheel: 'Wheel', double: 'Double', crash: 'Crash' };
 
 class CasinoErrorBoundary extends Component {
   state = { error: null };
@@ -150,6 +152,8 @@ function CasinoApp() {
       <section className={activeGame === 'tower' ? 'game-view' : 'hidden'} aria-hidden={activeGame !== 'tower'}><Tower {...props} active={activeGame === 'tower'} /></section>
       <section className={activeGame === 'coin-flip' ? 'game-view' : 'hidden'} aria-hidden={activeGame !== 'coin-flip'}><CoinFlip {...props} active={activeGame === 'coin-flip'} /></section>
       <section className={activeGame === 'wheel' ? 'game-view' : 'hidden'} aria-hidden={activeGame !== 'wheel'}><WheelGame {...props} /></section>
+      <section className={activeGame === 'double' ? 'game-view' : 'hidden'} aria-hidden={activeGame !== 'double'}><DoubleGame {...props} /></section>
+      <section className={activeGame === 'crash' ? 'game-view' : 'hidden'} aria-hidden={activeGame !== 'crash'}><CrashGame {...props} active={activeGame === 'crash'} /></section>
       <WinPopup win={win?.game === activeGame ? win : null} />
     </div>
   </div>;

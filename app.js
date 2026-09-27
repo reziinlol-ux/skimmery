@@ -123,8 +123,8 @@
     updateWallet();
   };
   const nav = async (page) => {
-    const validPage = ['marketplace', 'purchases', 'credits', 'how-it-works', 'terms', 'privacy', 'chicken-cross', 'roulette', 'tower', 'coin-flip', 'wheel'].includes(page) ? page : 'marketplace';
-    const isCasinoGame = ['chicken-cross', 'roulette', 'tower', 'coin-flip', 'wheel'].includes(validPage);
+    const validPage = ['marketplace', 'purchases', 'credits', 'how-it-works', 'terms', 'privacy', 'chicken-cross', 'roulette', 'tower', 'coin-flip', 'wheel', 'double', 'crash'].includes(page) ? page : 'marketplace';
+    const isCasinoGame = ['chicken-cross', 'roulette', 'tower', 'coin-flip', 'wheel', 'double', 'crash'].includes(validPage);
     document.body.classList.toggle('virtual-casino-active', isCasinoGame);
     document.body.classList.toggle('roulette-game-active', validPage === 'roulette');
     if (validPage === 'purchases' && !state.user) askSignIn();
@@ -139,9 +139,9 @@
     $('casino-panel').classList.toggle('hidden', !isCasinoGame);
     $('casino-trigger').classList.toggle('is-current', isCasinoGame);
     if (isCasinoGame) setCasinoMenu(window.matchMedia('(min-width: 761px)').matches);
-    $('breadcrumb-current').textContent = ({ marketplace: 'Marketplace', purchases: 'Your purchases', credits: 'Credits', 'how-it-works': 'How it works', terms: 'Terms of Service', privacy: 'Privacy Policy', 'chicken-cross': 'Chicken Cross', roulette: 'Roulette', tower: 'Tower', 'coin-flip': 'Coin Flip', wheel: 'Wheel' })[validPage];
+    $('breadcrumb-current').textContent = ({ marketplace: 'Marketplace', purchases: 'Your purchases', credits: 'Credits', 'how-it-works': 'How it works', terms: 'Terms of Service', privacy: 'Privacy Policy', 'chicken-cross': 'Chicken Cross', roulette: 'Roulette', tower: 'Tower', 'coin-flip': 'Coin Flip', wheel: 'Wheel', double: 'Double', crash: 'Crash' })[validPage];
     if (validPage === 'purchases') { try { await loadOrders(); } catch (error) { showToast(error.message); } }
-    const id = { purchases: 'purchases-panel', credits: 'credits-panel', 'how-it-works': 'how-panel', terms: 'terms-panel', privacy: 'privacy-panel', 'chicken-cross': 'casino-panel', roulette: 'casino-panel', tower: 'casino-panel', 'coin-flip': 'casino-panel', wheel: 'casino-panel' }[validPage];
+    const id = { purchases: 'purchases-panel', credits: 'credits-panel', 'how-it-works': 'how-panel', terms: 'terms-panel', privacy: 'privacy-panel', 'chicken-cross': 'casino-panel', roulette: 'casino-panel', tower: 'casino-panel', 'coin-flip': 'casino-panel', wheel: 'casino-panel', double: 'casino-panel', crash: 'casino-panel' }[validPage];
     requestAnimationFrame(() => (validPage === 'marketplace' ? [$('marketplace'), $('packs')] : [$(id)]).forEach(enterView));
     history.replaceState(null, '', `#${validPage}`);
     window.dispatchEvent(new CustomEvent('casino:route', { detail: { page: validPage } }));
@@ -288,11 +288,11 @@
     requestAnimationFrame(draw);
   }
 
-  const initialPage = ({ '#purchases': 'purchases', '#credits': 'credits', '#how-it-works': 'how-it-works', '#terms': 'terms', '#privacy': 'privacy', '#chicken-cross': 'chicken-cross', '#roulette': 'roulette', '#tower': 'tower', '#coin-flip': 'coin-flip', '#wheel': 'wheel' })[location.hash] || 'marketplace';
+  const initialPage = ({ '#purchases': 'purchases', '#credits': 'credits', '#how-it-works': 'how-it-works', '#terms': 'terms', '#privacy': 'privacy', '#chicken-cross': 'chicken-cross', '#roulette': 'roulette', '#tower': 'tower', '#coin-flip': 'coin-flip', '#wheel': 'wheel', '#double': 'double', '#crash': 'crash' })[location.hash] || 'marketplace';
   if (location.hash === '#choose-username') $('username-dialog').showModal();
   if (location.hash === '#signin') setAuthDialog();
   if (location.hash === '#signin-error') { $('auth-error').hidden = false; $('auth-error').textContent = 'Google sign-in could not be completed. Please try again.'; setAuthDialog(); }
-  const isCasinoPage = ['roulette', 'tower', 'coin-flip', 'chicken-cross', 'wheel'].includes(initialPage);
+  const isCasinoPage = ['roulette', 'tower', 'coin-flip', 'chicken-cross', 'wheel', 'double', 'crash'].includes(initialPage);
   if (isCasinoPage) nav(initialPage);
   api('/api/config').then((data) => { state.testTopupsEnabled = Boolean(data.testTopupsEnabled); document.querySelector('.google-signin').hidden = !data.googleClientId; updateWallet(); }).catch(() => {});
   loadMe().then(() => { updateWallet(); if (!isCasinoPage) nav(initialPage); });

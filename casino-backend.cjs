@@ -1,10 +1,11 @@
 const crypto = require('node:crypto');
-const engines = Promise.all(['roulette','chicken','tower','coinflip','wheel'].map(name => import(`./src/casino/logic/${name}.js`)));
+const engines = Promise.all(['roulette','chicken','tower','coinflip','wheel','double','crash'].map(name => import(`./src/casino/logic/${name}.js`)));
 const cents = value => Math.round(Number(value) * 100) / 100;
 const fail = (status, message) => { const error = new Error(message); error.status = status; error.publicCode = 'casino_rejected'; throw error; };
 const publicState = round => {
   if (!round) return null;
   const state = { ...round.state };
+  delete state.crashAt;
   if (state.floors && !round.completed) state.floors = state.floors.map(f => ({ picked: f.picked, safe: f.safe, revealed: f.picked !== null }));
   return { id: round.id, game: round.game, stake: Number(round.stake), completed: round.completed, ...state };
 };
@@ -103,7 +104,7 @@ module.exports = function register({ app, pool, route, currentUser, requireSameO
     });res.json(data);
   }));
   app.post('/api/casino/action', requireSameOrigin, currentUser, route(async(req,res)=> {
-    const [roulette,chicken,tower,coin,wheel]=await engines;
+    const [roulette,chicken,tower,coin,wheel,double,crash]=await engines;
     const {action,game,options={},roundId,actionId}=req.body || {};
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(actionId || '')) return sendError(res,400,'invalid_action','Invalid action ID.');
     const result=await userTransaction(req,async db=> {
@@ -117,7 +118,7 @@ module.exports = function register({ app, pool, route, currentUser, requireSameO
         if (active) fail(409,'Finish your current round first.');
         const stake=cents(req.body.stake);
         if (!Number.isFinite(stake) || stake<10 || stake>balance || stake>1000000) fail(400,'Enter a bet between 10 credits and your available balance.');
-        if (!['roulette','coin-flip','tower','chicken-cross','wheel'].includes(game)) fail(400,'Unknown game.');
+        if (!['roulette','coin-flip','tower','chicken-cross','wheel','double','crash'].includes(game)) fail(400,'Unknown game.');
         round={id:crypto.randomUUID(),game,stake,state:{}};
         balance=cents(balance-stake);
         if (game==='roulette') {
@@ -139,6 +140,11 @@ module.exports = function register({ app, pool, route, currentUser, requireSameO
         } else if(game==='chicken-cross') {
           if(!chicken.CROSS_DIFFICULTIES[options.difficulty]) fail(400,'Choose a difficulty.');
           round.state={difficulty:options.difficulty,steps:0};
+        } else if(game==='double') {
+          if(!double.DOUBLE_OUTCOMES.some(item=>item.key===options.pick)) fail(400,'Choose a Double outcome.');
+          outcome=double.spinDouble();payout=double.doublePayout(stake,options.pick,outcome);completed=true;
+        } else if(game==='crash') {
+          round.state={startedAt:Date.now(),crashAt:crash.sampleCrashPoint(),multiplier:1};
         } else {
           if(!wheel.WHEEL_RISKS[options.risk]) fail(400,'Choose a risk.');
           round.state={risk:options.risk,wins:0,multiplier:1};
@@ -149,7 +155,13 @@ module.exports = function register({ app, pool, route, currentUser, requireSameO
         round.stake=Number(round.stake);
       }
       const state=round.state;
-      if(round.game==='wheel' && (action==='start' || action==='spin')) {
+      if(action==='crash-check' && round.game==='crash') {
+        const currentMultiplier=crash.crashMultiplier(Date.now()-state.startedAt);
+        state.multiplier=currentMultiplier;
+        const crashed=currentMultiplier>=state.crashAt;
+        outcome={crashed,currentMultiplier:crashed?state.crashAt:currentMultiplier};
+        if(crashed) completed=true;
+      } else if(round.game==='wheel' && (action==='start' || action==='spin')) {
         outcome=wheel.spinWheel(state.risk,state.wins);state.lastOutcome=outcome;
         if(outcome.multiplier===null) completed=true;
         else { state.multiplier=wheel.multiplyWheelMultiplier(state.multiplier,outcome.multiplier);state.wins+=1; if(state.wins===8) {completed=true;payout=wheel.wheelCashout(round.stake,state.multiplier);} }
@@ -168,6 +180,11 @@ module.exports = function register({ app, pool, route, currentUser, requireSameO
         if(round.game==='wheel' && state.wins>0) payout=wheel.wheelCashout(round.stake,state.multiplier);
         else if(round.game==='chicken-cross' && state.steps>0) payout=chicken.crossCashout(round.stake,state.steps,state.difficulty);
         else if(round.game==='tower' && state.cleared>0) payout=tower.towerCashout(round.stake,state.cleared,state.difficulty);
+        else if(round.game==='crash') {
+          const currentMultiplier=crash.crashMultiplier(Date.now()-state.startedAt), crashed=currentMultiplier>=state.crashAt;
+          outcome={crashed,currentMultiplier:crashed?state.crashAt:currentMultiplier};
+          if(!crashed) payout=crash.crashPayout(round.stake,currentMultiplier);
+        }
         else fail(409,'Make a successful move before cashing out.');
         completed=true;
       } else if(action==='abandon') completed=true;
