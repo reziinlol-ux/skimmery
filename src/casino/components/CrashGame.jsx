@@ -9,6 +9,7 @@ const multiplierText = (value) => `${Number(value || 1).toFixed(2)}×`;
 
 export function CrashGame({ credits, locked, startRound, finishRound, gameAction, active }) {
   const [stakeText, setStakeText] = useState('10');
+  const [autoCashoutText, setAutoCashoutText] = useState('');
   const [phase, setPhase] = useState('ready');
   const [multiplier, setMultiplier] = useState(1);
   const [elapsedMs, setElapsedMs] = useState(0);
@@ -16,6 +17,8 @@ export function CrashGame({ credits, locked, startRound, finishRound, gameAction
   const [resultText, setResultText] = useState('Place a bet to start');
   const [plotKey, setPlotKey] = useState(0);
   const stake = Number(stakeText);
+  const autoCashout = autoCashoutText.trim() ? Number(autoCashoutText) : null;
+  const autoCashoutValid = autoCashout === null || (Number.isFinite(autoCashout) && autoCashout >= 1.5 && autoCashout <= 100);
   const reduced = useReducedMotion();
   const stakeRef = useRef(10);
   const startTime = useRef(0);
@@ -33,16 +36,16 @@ export function CrashGame({ credits, locked, startRound, finishRound, gameAction
     }
   }, [active, phase]);
 
-  const settle = (won, at) => {
+  const settle = (won, at, automatic = false) => {
     if (finished.current) return;
     finished.current = true;
     setPhase(won ? 'cashed' : 'crashed');
     setBusy(false); actionPending.current = false;
     const payout = won ? crashPayout(stakeRef.current, at) : 0;
     setMultiplier(at);
-    setResultText(won ? `Cashed out at ${multiplierText(at)}` : `Crashed at ${multiplierText(at)}`);
+    setResultText(won ? `${automatic ? 'Auto cashed out' : 'Cashed out'} at ${multiplierText(at)}` : `Crashed at ${multiplierText(at)}`);
     casinoSound(won ? 'win' : 'loss');
-    finishRound({ game: 'crash', summary: won ? multiplierText(at) : `Crashed ${multiplierText(at)}`, stake: stakeRef.current, net: payout - stakeRef.current, won, payout, multiplier: at }, payout);
+    finishRound({ game: 'crash', summary: won ? `${automatic ? 'Auto · ' : ''}${multiplierText(at)}` : `Crashed ${multiplierText(at)}`, stake: stakeRef.current, net: payout - stakeRef.current, won, payout, multiplier: at, autoCashout: automatic }, payout);
   };
 
   useEffect(() => {
@@ -56,6 +59,7 @@ export function CrashGame({ credits, locked, startRound, finishRound, gameAction
         const current = crashMultiplier(Date.now() - startTime.current);
         setElapsedMs(Date.now() - startTime.current);
         setMultiplier(current);
+        if (!serverRoundActive.current && autoCashout !== null && current >= autoCashout && autoCashout < crashAt.current) { settle(true, autoCashout, true); return; }
         if (!serverRoundActive.current && current >= crashAt.current) { settle(false, crashAt.current); return; }
         if (serverRoundActive.current && now - lastTick.current > 450 && !actionPending.current) {
           lastTick.current = now;
@@ -65,7 +69,8 @@ export function CrashGame({ credits, locked, startRound, finishRound, gameAction
             if (!response || finished.current) return;
             const serverMultiplier = Number(response.outcome?.currentMultiplier) || current;
             setMultiplier(serverMultiplier);
-            if (response.completed || response.outcome?.crashed) settle(false, serverMultiplier);
+            if (response.outcome?.autoCashedOut) settle(true, serverMultiplier, true);
+            else if (response.completed || response.outcome?.crashed) settle(false, serverMultiplier);
           });
         }
       }
@@ -73,12 +78,12 @@ export function CrashGame({ credits, locked, startRound, finishRound, gameAction
     };
     frame = window.requestAnimationFrame(draw);
     return () => window.cancelAnimationFrame(frame);
-  }, [phase, locked, gameAction, active]);
+  }, [phase, locked, gameAction, active, autoCashout]);
 
   const play = async () => {
-    if (locked || busy || phase === 'running' || !Number.isSafeInteger(stake) || stake < 10 || stake > credits) return;
+    if (locked || busy || phase === 'running' || !Number.isSafeInteger(stake) || stake < 10 || stake > credits || !autoCashoutValid) return;
     setBusy(true); finished.current = false; actionPending.current = false;
-    const round = await startRound(stake, 'crash');
+    const round = await startRound(stake, 'crash', { autoCashout });
     if (!round) { setBusy(false); return; }
     serverRoundActive.current = !round.demo;
     stakeRef.current = stake;
