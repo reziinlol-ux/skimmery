@@ -402,3 +402,161 @@ body.roulette-game-active { height: 100dvh; overflow: hidden; }
   .roulette-chip-options:has(.roulette-custom-chip.editing) { position: relative; overflow: visible; }
   .roulette-chip-options:has(.roulette-custom-chip.editing) .roulette-custom-editor { left: calc(100% + 16px); }
 }
+
+/* Shared game layout: compact controls at the left, an illustrated play surface at the right. */
+.game-side-layout { display: grid; width: min(100%,1360px); grid-template-columns: minmax(248px,292px) minmax(0,1fr); align-items: stretch; gap: clamp(16px,2.2vw,30px); margin-inline: auto; }
+.side-control-panel { display: flex; min-width: 0; width: 100%; max-width: none; flex-direction: column; align-items: stretch; align-self: start; gap: 15px; margin: 0; padding: 19px; border: 1px solid #ffffff12; border-radius: 14px; background: linear-gradient(155deg,#222a38,#1a202b 70%); box-shadow: 0 16px 42px #05091435; }
+.side-control-panel .stake-field { width: 100%; min-width: 0; gap: 7px; color: #d2dbea; font-size: 12px; }
+.side-control-panel .stake-field > span { color: #d6e2f5; font-size: 12px; font-weight: 600; }
+.side-control-panel .stake-input-wrap { height: 46px; border-color: #ffffff18; background: #131a24; }
+.side-control-panel .stake-input-wrap:focus-within { border-color: #4d8ee7; box-shadow: 0 0 0 3px #4d8ee720; }
+.side-control-panel .game-action-button, .side-control-panel > button { width: 100%; min-height: 46px; border-radius: 8px; }
+.game-panel-heading { display: grid; gap: 5px; margin-bottom: 2px; }
+.game-panel-heading > span, .double-scene-heading > span { color: #77aaff; font: 700 10px "Space Grotesk",sans-serif; letter-spacing: 1.6px; }
+.game-panel-heading h2 { margin: 0; color: #fff; font: 650 21px/1.1 "Space Grotesk",sans-serif; letter-spacing: -.45px; }
+.game-panel-heading p { margin: 0; color: #95a3b8; font-size: 12px; line-height: 1.45; }
+.game-scene-panel { position: relative; min-width: 0; overflow: hidden; border: 1px solid #ffffff12; border-radius: 16px; background: radial-gradient(ellipse at 51% 38%,#202f45 0%,#151f30 52%,#121a28 100%); box-shadow: inset 0 1px 0 #ffffff08,0 18px 50px #05091435; }
+.game-controls.side-control-panel { padding-top: 20px; border-top: 1px solid #ffffff12; }
+
+/* Roulette: keep the sphere on the pocket panels and let it roll toward the inner edge. */
+.roulette-ball-anchor { top: 3.5%; left: calc(50% - 10px); width: 20px; height: 20px; }
+.roulette-ball-sphere { width: 100%; height: 100%; filter: drop-shadow(0 3px 3px #02040a9c) drop-shadow(0 0 3px #ffffff75); }
+.roulette-ball-billboard { width: 100%; height: 100%; transform: rotateX(-48deg); }
+.roulette-betting .wager-total { align-self: center; color: #fff; font: 700 17px/1 "Space Grotesk",sans-serif; text-shadow: 0 2px 0 #050608,0 4px 9px #0009; }
+.roulette-betting .wager-total small { color: #e1e8f4; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .8px; }
+.wheel-spindle { z-index: 5; filter: drop-shadow(0 4px 3px #0008); }
+.wheel-spindle span { height: 25px; background: radial-gradient(ellipse at 40% 28%,#e8bb5c,#ba8d36 78%); box-shadow: inset 0 2px 1px #f5d48766,0 4px 0 #8f6828; }
+
+/* Side-panel adaptations for existing games. */
+.chicken-game { width: min(100%,1360px); }
+.chicken-controls .cross-difficulty-wrap { align-self: stretch; width: 100%; }
+.chicken-controls .cross-difficulty-trigger { width: 100%; min-height: 48px; background: #151d29; }
+.chicken-controls .cross-difficulty-menu { top: calc(100% + 7px); bottom: auto; background: #182233; }
+.chicken-controls .cross-difficulty-menu button:hover, .chicken-controls .cross-difficulty-menu button.selected { background: #244e80; }
+.chicken-controls .cross-current-multiplier { align-self: flex-start; margin: -2px 0 0; color: #75adff; font-size: 22px; }
+.chicken-controls > button { width: 100%; }
+.road-viewport { min-width: 0; height: clamp(430px,64vh,610px); overflow-x: auto; overflow-y: hidden; border-color: #33516c; background: radial-gradient(ellipse at 55% 15%,#314155 0%,#202b3b 35%,#111a26 80%); box-shadow: inset 0 1px 0 #ffffff12,0 18px 45px #07111b88; scrollbar-color: #53728d #182332; }
+.road-viewport::before { position: absolute; z-index: 1; inset: 0; background: radial-gradient(ellipse at 20% 20%,#ffc96b14,transparent 28%),radial-gradient(ellipse at 86% 70%,#ff678e13,transparent 30%),linear-gradient(135deg,#17283a33,#10182155); content: ""; pointer-events: none; }
+.road-scene-sky { position: absolute; z-index: 1; inset: 0; overflow: hidden; pointer-events: none; }
+.road-scene-sky i { position: absolute; top: 8%; width: 115px; height: 145px; border: 1px solid #88b6d514; border-radius: 12px 12px 3px 3px; background: repeating-linear-gradient(0deg,transparent 0 18px,#b3d9f20b 18px 22px),repeating-linear-gradient(90deg,#7ca9cb0c 0 16px,transparent 16px 27px),linear-gradient(160deg,#34455a,#263445); box-shadow: 10px 11px 0 #101924aa; }
+.road-scene-sky i:nth-child(1) { left: 25px; transform: skewY(-5deg) scale(.8); }
+.road-scene-sky i:nth-child(2) { right: 15px; top: 23%; transform: skewY(5deg) scale(.7); }
+.road-scene-sky i:nth-child(3) { right: 43%; top: -9%; transform: scale(.5); opacity: .62; }
+.road-world { z-index: 2; transform: perspective(1400px) rotateX(3deg) rotateY(-.8deg); transform-origin: center center; filter: drop-shadow(0 10px 12px #07111d66); }
+.road-pavement { background: linear-gradient(90deg,#293745,#334453 48%,#273746); }
+.pavement-bricks { background-image: repeating-linear-gradient(0deg,transparent 0 54px,#1823303d 55px 57px),repeating-linear-gradient(90deg,#526171 0 28px,#354454 29px 32px); }
+.road-curb { width: 23px; border-right: 3px solid #111923; background: repeating-linear-gradient(0deg,#a3aab0 0 55px,#e2b75f 55px 61px,#495a67 61px 67px); box-shadow: -5px 0 0 #172332; }
+.road-lamp { background: linear-gradient(90deg,#172433,#526476); box-shadow: 3px 5px 0 #101a27; }
+.road-lamp i { border-color: #6e6651; background: linear-gradient(90deg,#f6cb68,#ffef9b,#e6a84d); }
+.road-lamp b { background: #566b7a; }
+.road-tree { background: #26382f; }
+.road-tree i { background: #43785d; box-shadow: 0 18px 0 #2d5a47; }
+.road-tree i:nth-child(2) { background: #5e9366; }.road-tree i:nth-child(3) { background: #3e795b; }
+.road-lane { background: repeating-linear-gradient(90deg,#273543 0 147px,#1b2734 147px 150px); }
+.road-lane:nth-of-type(odd) { background-color: #293a47; }
+.road-lane::after { width: 2px; background: repeating-linear-gradient(0deg,#d2dce477 0 27px,transparent 27px 57px); opacity: .54; }
+.lane-marker { top: calc(61% - 30px); left: 46px; width: 58px; height: 58px; border: 1px solid #e7b45077; border-radius: 14px; transform: rotateX(8deg) rotateZ(-4deg); background: linear-gradient(155deg,#34485c,#1e2a38); color: #f8d284; font-size: 12px; box-shadow: inset 0 1px 0 #ffffff28,0 6px 0 #14202b,0 10px 18px #050b1380; }
+.lane-marker.next { border-color: #61a5ff; background: linear-gradient(155deg,#315d8b,#1c3450); color: #e5f2ff; box-shadow: inset 0 1px 0 #ffffff38,0 6px 0 #14202b,0 0 22px #4d9cff35; }
+.lane-marker.cleared { border-color: #dfab52; color: #ffe2a0; }
+.road-chicken { filter: drop-shadow(0 10px 7px #07111baa); }
+.lane-car { filter: drop-shadow(0 9px 7px #07111b99); }
+.roadblock { filter: drop-shadow(0 8px 5px #07111b99); }
+.tower-game { width: min(100%,1360px); }
+.tower-controls .difficulty-picker { align-self: stretch; height: auto; min-height: 44px; justify-content: stretch; border-color: #ffffff18; background: #141c28; }
+.tower-controls .difficulty-picker button { flex: 1; min-width: 0; color: #aab6c7; }
+.tower-controls .difficulty-picker button.selected { background: #315f98; color: #fff; }
+.tower-controls > button { width: 100%; }
+.tower-scene { min-height: clamp(450px,65vh,620px); overflow: hidden; border-radius: 16px; background: radial-gradient(ellipse at 50% 48%,#303f59,#192638 67%,#111a27); }
+.tower-masonry { opacity: .5; background-image: repeating-linear-gradient(0deg,transparent 0 48px,#101b2b88 49px 51px),repeating-linear-gradient(90deg,#40546c 0 65px,#293a50 66px 69px); }
+.tower-grid { border-color: #6280a24f; border-radius: 12px; background: #111b29b5; box-shadow: 0 18px 40px #050a1380; }
+.tower-tile.clickable { border-color: #6fa7eb; background-color: #345477; }
+.tower-tile.safe { border: 1.5px solid #5aa5ff; background-color: #1d4670; box-shadow: inset 0 0 20px #4ca1ff26,0 0 14px #4ca1ff18; }
+.tower-gem-content strong { background: #163c64; color: #d8ecff; }
+.coinflip-game { width: min(100%,1360px); max-width: none; }
+.coin-controls > button { width: 100%; }
+.coin-side-picker { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+.coin-side-picker button { display: grid; min-width: 0; min-height: 82px; justify-items: center; align-content: center; gap: 8px; border-color: #ffffff15; background: #141c28; color: #d6e2f4; }
+.coin-side-picker button.selected { border-color: #5599ed; background: linear-gradient(145deg,#245184,#1b3048); color: #fff; box-shadow: inset 0 0 0 1px #74b5ff24,0 6px 18px #07111d66; }
+.coin-choice-icon { display: grid; width: 36px; height: 36px; place-items: center; border-radius: 50%; background: #efbd50; color: #473515; }
+.coin-choice-icon.tails { background: linear-gradient(145deg,#f4f5f6,#9ca5b0); color: #3b4552; }
+.coin-scene { display: grid; min-height: clamp(450px,65vh,620px); align-content: center; justify-items: center; padding: 14px; background: radial-gradient(ellipse at 50% 48%,#304258,#172334 65%,#121a27); }
+.coin-scene .coin-stage { width: 100%; }
+.coin-scene .coin-side-picker { margin-top: 10px; }
+.coin-scene .coin-side-picker button { display: none; }
+.coin-object { filter: drop-shadow(0 20px 25px #050a1380); }
+
+/* Wheel retains its game at the right with betting controls in the left rail. */
+.wheel-game { width: min(100%,1360px); }
+.wheel-game-layout { display: grid; grid-template-columns: minmax(248px,292px) minmax(0,1fr); align-items: center; gap: clamp(16px,2.2vw,30px); min-height: clamp(490px,calc(100dvh - 200px),680px); padding-block: 0; }
+.wheel-controls { align-self: start; width: 100%; max-width: none; padding: 19px; border: 1px solid #ffffff12; border-radius: 14px; background: linear-gradient(155deg,#222a38,#1a202b 70%); box-shadow: 0 16px 42px #05091435; }
+.wheel-board { order: 0; gap: 20px; }
+.wheel-stage { width: min(100%,58vh,590px); }
+.wheel-risk-picker { background: #141c28; }
+.wheel-risk-picker button.selected { background: #32639b; color: #fff; }
+.wheel-round-status { color: #c6d8ef; }
+
+/* Double reel. */
+.double-controls { align-self: start; }
+.double-picks { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.double-pick { display: flex; min-width: 0; min-height: 61px; align-items: center; gap: 9px; padding: 8px; border: 1px solid #ffffff12; border-radius: 9px; background: #151e2a; color: #e4eaf3; text-align: left; transition: transform .16s,border-color .16s,background .16s; }
+.double-pick:not(:disabled):hover { transform: translateY(-1px); border-color: #6daeff; }
+.double-pick.selected { border-color: #4f98ed; background: linear-gradient(145deg,#254e7c,#1a2d43); box-shadow: inset 0 0 0 1px #5ca4ff21; }
+.double-pick-dot { flex: none; width: 13px; height: 13px; border-radius: 50%; background: var(--tile-color); box-shadow: 0 0 13px color-mix(in srgb,var(--tile-color) 48%,transparent); }
+.double-pick strong { font-size: 11px; line-height: 1.2; }
+.double-red { --tile-color: #f34b5b; }.double-black { --tile-color: #5a687c; }.double-bait { --tile-color: #c8aa70; }.double-green { --tile-color: #24bd78; }
+.double-round-status { min-height: 18px; color: #a9bad0; text-align: center; font-size: 11px; }
+.double-board { display: flex; min-height: clamp(440px,64vh,620px); flex-direction: column; justify-content: center; gap: 28px; padding: clamp(20px,4vw,52px); background: radial-gradient(ellipse at 50% 48%,#2a3550,#172033 60%,#101826); }
+.scene-glow { position: absolute; width: 38%; aspect-ratio: 1; border-radius: 50%; filter: blur(85px); opacity: .22; pointer-events: none; }
+.scene-glow-red { top: 7%; left: 7%; background: #ee5268; }.scene-glow-blue { right: 5%; bottom: 3%; background: #388fff; }
+.double-scene-heading { position: relative; z-index: 1; display: grid; justify-items: center; gap: 7px; text-align: center; }
+.double-scene-heading strong { color: #f5f7fb; font: 600 clamp(17px,2vw,23px) "Space Grotesk",sans-serif; }
+.double-reel-stage { position: relative; z-index: 1; width: 100%; height: 128px; overflow: hidden; border: 1px solid #8c9cba3b; border-radius: 15px; background: linear-gradient(180deg,#0f1722,#101928); box-shadow: inset 0 0 22px #050a14c9,0 12px 28px #060a1570; }
+.double-reel-stage::before, .double-reel-stage::after { position: absolute; z-index: 2; top: 0; bottom: 0; width: 12%; content: ""; pointer-events: none; }
+.double-reel-stage::before { left: 0; background: linear-gradient(90deg,#111a28,transparent); }.double-reel-stage::after { right: 0; background: linear-gradient(270deg,#111a28,transparent); }
+.double-reel-pointer { position: absolute; z-index: 4; top: 0; bottom: 0; left: 50%; width: 3px; transform: translateX(-50%); background: #d9e8ff; box-shadow: 0 0 15px #69aaffb0; }
+.double-reel-pointer::before, .double-reel-pointer::after { position: absolute; left: 50%; width: 15px; height: 15px; transform: translateX(-50%) rotate(45deg); border-radius: 3px; background: #d9e8ff; content: ""; }
+.double-reel-pointer::before { top: -7px; }.double-reel-pointer::after { bottom: -7px; }
+.double-reel-track { display: flex; width: max-content; height: 100%; align-items: center; gap: 8px; padding: 0 8px; }
+.double-reel-tile { display: grid; flex: none; width: 88px; height: 90px; align-content: center; justify-items: center; gap: 4px; border: 1px solid color-mix(in srgb,var(--tile-color) 65%,#ffffff20); border-radius: 10px; background: linear-gradient(145deg,color-mix(in srgb,var(--tile-color) 88%,#fff 6%),color-mix(in srgb,var(--tile-color) 78%,#000)); color: #fff; box-shadow: inset 0 1px 0 #ffffff55,0 5px 0 #080e18,0 8px 14px #0006; }
+.double-reel-tile span { font: 800 20px/1 "Space Grotesk",sans-serif; text-shadow: 0 2px 5px #0005; }.double-reel-tile strong { font: 700 9px "Space Grotesk",sans-serif; text-transform: uppercase; letter-spacing: .6px; }
+.double-outcome-legend { position: relative; z-index: 1; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.double-outcome-legend span { padding: 6px 9px; border: 1px solid color-mix(in srgb,var(--tile-color) 40%,transparent); border-radius: 999px; background: color-mix(in srgb,var(--tile-color) 12%,transparent); color: #e9eff9; font-size: 10px; }
+.double-result-banner { position: relative; z-index: 1; display: flex; justify-content: center; align-items: center; gap: 8px; color: #fff; font: 700 12px "Space Grotesk",sans-serif; }
+.double-result-banner i { width: 9px; height: 9px; border-radius: 50%; box-shadow: 0 0 12px currentColor; }
+
+/* Crash chart. */
+.crash-controls { align-self: start; }
+.crash-round-status { min-height: 18px; color: #aebbd0; text-align: center; font-size: 11px; }
+.crash-round-status.running { color: #9bc7ff; }.crash-round-status.crashed { color: #ff7885; }.crash-round-status.cashed { color: #b3d5ff; }
+.crash-cashout-note { padding-top: 12px; border-top: 1px solid #ffffff10; color: #8291a6; font-size: 10px; line-height: 1.5; text-align: center; }
+.crash-board { display: flex; min-height: clamp(440px,64vh,620px); flex-direction: column; align-items: center; justify-content: center; overflow: hidden; background: radial-gradient(ellipse at 52% 49%,#1d2c41,#111b2b 70%); }
+.crash-chart-grid { position: absolute; inset: 0; display: grid; align-content: center; gap: 22%; padding: 9% 0; }
+.crash-chart-grid i { height: 1px; background: #b6c9e30e; }
+.crash-chart-label { z-index: 1; margin: 0 0 6px; color: #91a1b6; font: 700 10px "Space Grotesk",sans-serif; letter-spacing: 1.5px; }
+.crash-multiplier { z-index: 1; color: #60a9ff; font: 700 clamp(58px,10vw,112px)/1 "Space Grotesk",sans-serif; letter-spacing: -5px; font-variant-numeric: tabular-nums; text-shadow: 0 0 36px #438fff3e; }
+.crash-chart { position: absolute; inset: 0; width: 100%; height: 100%; }
+.crash-fill { fill: url(#crash-fill); }.crash-line { fill: none; stroke: #4f9cff; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 8px #3d8fff9c); }
+.crash-dot { fill: #d7eaff; filter: drop-shadow(0 0 8px #48a0ff); }
+.crash-board.crashed .crash-line { stroke: #ff6475; filter: drop-shadow(0 0 8px #ff647588); }.crash-board.cashed .crash-line { stroke: #8bc2ff; }
+
+@media (max-width: 760px) {
+  .game-side-layout, .wheel-game-layout { grid-template-columns: minmax(0,1fr); gap: 14px; }
+  .side-control-panel, .wheel-controls { order: 0; }
+  .road-viewport, .tower-scene, .coin-scene, .double-board, .crash-board { min-height: 0; height: auto; }
+  .road-viewport { height: 430px; }
+  .tower-scene { height: 480px; }
+  .coin-scene { min-height: 410px; }
+  .double-board, .crash-board { min-height: 400px; }
+  .wheel-board { order: 1; }
+  .wheel-stage { width: min(84vw,470px); }
+}
+@media (max-width: 480px) {
+  .side-control-panel, .wheel-controls { padding: 15px; }
+  .game-panel-heading h2 { font-size: 19px; }
+  .double-board { min-height: 350px; gap: 22px; padding: 18px 10px; }
+  .double-reel-stage { height: 110px; }
+  .double-reel-tile { width: 78px; height: 78px; }
+  .double-multiplier, .crash-multiplier { letter-spacing: -3px; }
+  .crash-board { min-height: 350px; }
+  .road-viewport { height: 390px; }
+}
