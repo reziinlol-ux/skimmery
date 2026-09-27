@@ -48,7 +48,7 @@ The Railway database and domain are not provisioned by this code. Review Railway
 
 ## Current limits
 
-- Credit-package buttons use a server-side test grant only when `NODE_ENV=development`, `ALLOW_TEST_TOPUPS=true`, and `APP_ORIGIN` is a loopback HTTP origin. Production rejects test grants, requires TLS to PostgreSQL, and must not grant the test-top-up procedure to the runtime role. There is no payment processor or payment webhook yet.
+- Credit-package buttons use a server-side test grant only when `NODE_ENV=development`, `ALLOW_TEST_TOPUPS=true`, and `APP_ORIGIN` is a loopback HTTP origin. Local test top-ups are limited to 25 requests per user per hour. Production rejects test grants, requires TLS to PostgreSQL, and must not grant the test-top-up procedure to the runtime role. There is no payment processor or payment webhook yet.
 - Daily bonus is a manual UTC-day claim worth 2% of cumulative credit top-ups, rounded down to a whole credit, once per user per day. The claim and wallet update run in one database transaction.
 - Tips move whole credits between two wallets in one transaction. Both balances are locked in stable user-ID order and requests require idempotency keys.
 - Account checkout is deliberately disabled and does not debit credits. Steam's Subscriber Agreement describes accounts as personal and restricts sales/transfers. The service has no account-inventory table, no password vault, and no credential-delivery route.

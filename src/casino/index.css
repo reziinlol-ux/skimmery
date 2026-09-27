@@ -675,6 +675,10 @@ body.roulette-game-active { height: 100dvh; overflow: hidden; }
 .casino-scope .crash-board.crashed .crash-line,
 .casino-scope .crash-board.cashed .crash-line,
 .casino-scope .crash-board.crashed .crash-dot { filter: none; }
+.casino-scope .crash-auto-field > span { display: flex; align-items: baseline; justify-content: space-between; }
+.casino-scope .crash-auto-field > span small { color: #92979f; font-size: 10px; font-weight: 500; }
+.casino-scope .crash-auto-hint { color: #92979f; font-size: 10px; line-height: 1.35; }
+.casino-scope .crash-auto-hint.invalid { color: #ff8b91; }
 @media (max-width: 760px) {
   .casino-scope .roulette-side-layout > .roulette-wheel-scene { height: min(39vh, 320px); min-height: 235px; }
   .casino-scope .roulette-side-layout .roulette-table { grid-template-columns: 30px minmax(0,1fr) 30px; grid-template-rows: repeat(3,30px) 28px 28px; }
