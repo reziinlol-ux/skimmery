@@ -35,8 +35,7 @@ function Wheel({ rotation, ballRotation, ballRun, spinning, reduced }) {
     <div className="roulette-wheel-perspective">
       <div className="roulette-wheel-depth" />
       <svg className="roulette-wheel-base" viewBox="0 0 400 400" aria-hidden="true">
-        <defs><radialGradient id="wheel-rim"><stop offset=".72" stopColor="#444649"/><stop offset=".88" stopColor="#6b6d70"/><stop offset="1" stopColor="#3b3d40"/></radialGradient></defs>
-        <circle cx="200" cy="200" r="198" fill="#35373a"/><circle cx="200" cy="200" r="190" fill="url(#wheel-rim)"/><circle cx="200" cy="200" r="172" fill="#262729"/>
+        <circle cx="200" cy="200" r="198" fill="#35373a"/><circle cx="200" cy="200" r="190" fill="#55575c"/><circle cx="200" cy="200" r="181" fill="#414348"/><circle cx="200" cy="200" r="172" fill="#262729"/>
       </svg>
       <motion.svg className="roulette-wheel-disc" viewBox="0 0 400 400" animate={{ rotate: rotation }} transition={{ duration: reduced ? 0 : spinning ? 7.4 : 0, ease: [.32,.06,.6,1] }} aria-hidden="true">
         {WHEEL_ORDER.map((number, index) => {
