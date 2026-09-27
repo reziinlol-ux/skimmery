@@ -1,12 +1,13 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { motion, useReducedMotion } from 'motion/react';
+import { motion, useMotionValue, useReducedMotion } from 'motion/react';
 import { RotateCcw, Undo2 } from 'lucide-react';
 import { Button } from './ui.jsx';
-import { RED_NUMBERS, WHEEL_ORDER, netOddsForBet, rouletteGroups, rouletteOutcomeDetails, settleRoulette, spinRoulette } from '../logic/roulette.js';
+import { RouletteBall } from './RouletteBall.jsx';
+import { RED_NUMBERS, WHEEL_ORDER, betWins, netOddsForBet, rouletteGroups, rouletteOutcomeDetails, settleRoulette, spinRoulette } from '../logic/roulette.js';
 import { casinoSound } from '../logic/sound.js';
 import { formatCredits } from '../logic/storage.js';
 
-const chipColors = ['#3a73aa', '#a64d55', '#46836e', '#303136', '#8065ab', '#a68548'];
+const chipColor = (amount) => amount >= 500 ? '#a68548' : amount > 200 ? '#3a73aa' : amount === 200 ? '#8065ab' : amount >= 100 ? '#303136' : amount >= 50 ? '#46836e' : amount >= 25 ? '#a64d55' : '#3a73aa';
 function ChipArtwork({ value, color }) {
   return <svg className="chip-artwork" viewBox="0 0 100 100" aria-hidden="true">
     <circle cx="50" cy="50" r="47" fill={color} stroke="#d8e0ea" strokeWidth="2" />
@@ -28,6 +29,7 @@ const sector = (start, end) => {
 };
 
 function Wheel({ rotation, ballRotation, spinning, reduced }) {
+  const roll = useMotionValue(0);
   return <div className="roulette-wheel-scene" aria-label="European roulette wheel">
     <div className="roulette-wheel-perspective">
       <div className="roulette-wheel-depth" />
@@ -35,14 +37,18 @@ function Wheel({ rotation, ballRotation, spinning, reduced }) {
         <defs><radialGradient id="wheel-rim"><stop offset=".72" stopColor="#444649"/><stop offset=".88" stopColor="#6b6d70"/><stop offset="1" stopColor="#3b3d40"/></radialGradient></defs>
         <circle cx="200" cy="200" r="198" fill="#35373a"/><circle cx="200" cy="200" r="190" fill="url(#wheel-rim)"/><circle cx="200" cy="200" r="172" fill="#262729"/>
       </svg>
-      <motion.svg className="roulette-wheel-disc" viewBox="0 0 400 400" animate={{ rotate: rotation }} transition={{ duration: reduced ? 0 : spinning ? 5.05 : 0, ease: [.12,.65,.16,1] }} aria-hidden="true">
+      <motion.svg className="roulette-wheel-disc" viewBox="0 0 400 400" animate={{ rotate: rotation }} transition={{ duration: reduced ? 0 : spinning ? 5.05 : 0, ease: [.2,.28,.18,1] }} aria-hidden="true">
         {WHEEL_ORDER.map((number, index) => {
           const angle = (index + .5) * step, pos = point(157, angle);
           return <g key={number}><path d={sector(index * step, (index + 1) * step)} fill={number === 0 ? '#00c878' : RED_NUMBERS.has(number) ? '#ff3048' : '#202124'} stroke="#ffffff08" strokeWidth=".6"/><text x={pos[0]} y={pos[1]} fill="#fff" fontSize="10" fontWeight="700" textAnchor="middle" dominantBaseline="middle" transform={'rotate(' + angle + ' ' + pos[0] + ' ' + pos[1] + ')'}>{number}</text></g>;
         })}
         <circle cx="200" cy="200" r="106" fill="#45474b"/>
       </motion.svg>
-      <motion.div className="roulette-ball-orbit" animate={{ rotate: ballRotation }} transition={{ duration: reduced ? 0 : spinning ? 5 : 0, ease: [.15,.75,.25,1] }}><span className="roulette-ball" /></motion.div>
+      <motion.div className="roulette-ball-orbit" animate={{ rotate: ballRotation }} onUpdate={(latest) => roll.set(Number(latest.rotate) || 0)} transition={{ duration: reduced ? 0 : spinning ? 5 : 0, ease: [.2,.3,.18,1] }}>
+        <motion.div className="roulette-ball-anchor" animate={{ rotate: -ballRotation }} transition={{ duration: reduced ? 0 : spinning ? 5 : 0, ease: [.2,.3,.18,1] }}>
+          <span className="roulette-ball-billboard"><RouletteBall roll={roll} /></span>
+        </motion.div>
+      </motion.div>
       <div className="wheel-spindle"><i /><b /><span /></div>
     </div>
   </div>;
@@ -53,7 +59,6 @@ export function Roulette({ credits, locked, startRound, finishRound }) {
   const [chip, setChip] = useState(10);
   const [spinning, setSpinning] = useState(false);
   const [result, setResult] = useState(null);
-  const [winningKeys, setWinningKeys] = useState([]);
   const [rotation, setRotation] = useState(0);
   const [ballRotation, setBallRotation] = useState(0);
   const rotationRef = useRef(0);
@@ -71,7 +76,6 @@ export function Roulette({ credits, locked, startRound, finishRound }) {
       const previous = current.find((entry) => entry.key === bet.key);
       return previous ? current.map((entry) => entry.key === bet.key ? { ...entry, amount: entry.amount + chip, chips: [...(entry.chips || [entry.amount]), chip] } : entry) : [...current, { ...bet, amount: chip, chips: [chip] }];
     });
-    setWinningKeys([]);
     setResult(null);
   };
   const undo = () => { if (!isLocked && undoRef.current.length) setBets(undoRef.current.pop()); };
@@ -88,10 +92,10 @@ export function Roulette({ credits, locked, startRound, finishRound }) {
     rotationRef.current += 360 * 11 + ((targetAngle - currentAngle + 360) % 360);
     ballRef.current -= 360 * 14;
     setRotation(rotationRef.current); setBallRotation(ballRef.current);
-    setResult(null); setWinningKeys([]); setSpinning(true);
+    setResult(null); setSpinning(true);
     casinoSound('spin');
     window.setTimeout(() => {
-      setSpinning(false); setResult(outcome); setWinningKeys(settlement.winningKeys); undoRef.current = [];
+      setSpinning(false); setResult(outcome); undoRef.current = [];
       casinoSound(settlement.net > 0 ? 'win' : 'loss');
       finishRound({ game: 'roulette', summary: String(outcome), stake: total, net: settlement.net, won: settlement.net > 0, payout: settlement.returned, outcome }, settlement.returned);
       busy.current = false;
@@ -103,27 +107,24 @@ export function Roulette({ credits, locked, startRound, finishRound }) {
     const bet = bets.find((entry) => entry.key === key);
     if (!bet) return null;
     const amount = bet.amount;
-    const color = amount > 500 ? '#a68548' : amount > 200 ? '#3a73aa' : amount > 100 ? '#303136' : amount > 50 ? '#46836e' : amount > 25 ? '#a64d55' : '#3a73aa';
+    const color = chipColor(amount);
     return <span className="placed-wager-chip" title={`${formatCredits(amount)} credits bet`}><ChipArtwork value={amount} color={color} /></span>;
   };
   const groupButton = (key) => {
     const group = rouletteGroups.find((item) => item.key === key), amount = amountFor(key);
-    return <button key={key} type="button" disabled={isLocked} onClick={() => addBet(group)} className={'roulette-bet roulette-group ' + (amount ? 'has-bet ' : '') + (winningKeys.includes(key) ? 'winning-bet' : '')} aria-label={'Bet on ' + group.label + ', pays ' + (group.type === 'column' ? '2 to 1' : netOddsForBet(group).toFixed(2) + ' to 1')}>
+    return <button key={key} type="button" disabled={isLocked} onClick={() => addBet(group)} className={'roulette-bet roulette-group ' + (amount ? 'has-bet ' : '') + (result !== null && betWins(group, result) ? 'winning-bet' : '')} aria-label={'Bet on ' + group.label + ', pays ' + (group.type === 'column' ? '2 to 1' : netOddsForBet(group).toFixed(2) + ' to 1')}>
       {group.type === 'color' ? <span className={'color-diamond ' + group.value} /> : <span>{labelFor(group)}</span>}
       {amount && placedChip(key)}
     </button>;
   };
   const numberButton = (n) => {
     const key = 'number-' + n, amount = amountFor(key);
-    return <button key={n} type="button" disabled={isLocked} onClick={() => addBet(numberBet(n))} aria-label={'Bet on ' + n} className={'roulette-bet roulette-number ' + pocketClass(n) + (amount ? ' has-bet' : '') + (result === n ? ' winning-number' : '') + (winningKeys.includes(key) ? ' winning-bet' : '')}><span>{n}</span>{amount && placedChip(key)}</button>;
+    return <button key={n} type="button" disabled={isLocked} onClick={() => addBet(numberBet(n))} aria-label={'Bet on ' + n} className={'roulette-bet roulette-number ' + pocketClass(n) + (amount ? ' has-bet' : '') + (result === n ? ' winning-number' : '')}><span>{n}</span>{amount && placedChip(key)}</button>;
   };
 
   return <div className="roulette-game">
     <Wheel rotation={rotation} ballRotation={ballRotation} spinning={spinning} reduced={reduced} />
-    {result !== null && <div className="roulette-result-summary" role="status" aria-label={`Number ${result} result details`}>
-      <span className={'roulette-result-number ' + pocketClass(result)}>{result}</span>
-      <div className="roulette-result-details">{rouletteOutcomeDetails(result).map((item) => <span key={item.label} className={item.className}>{item.label}</span>)}</div>
-    </div>}
+    {result !== null && <span className="sr-only" role="status">{result}: {rouletteOutcomeDetails(result).map((item) => item.label).join(', ')}</span>}
     <div className="roulette-betting">
       <div className="roulette-table-scroll"><div className="roulette-table" aria-label="Roulette betting table">
         <div className="roulette-zero">{numberButton(0)}</div>
@@ -136,7 +137,7 @@ export function Roulette({ credits, locked, startRound, finishRound }) {
       </div></div>
     <div className="roulette-chip-row" role="group" aria-label="Bet amount, chip size, and spin">
       <span className="wager-total">{formatCredits(total)} <small>bet</small></span>
-      <div className="roulette-chip-options" aria-label="Chip size">{chipSizes.map((size, i) => <button type="button" key={size} className={'casino-chip chip-' + i + (chip === size ? ' selected' : '')} disabled={isLocked} onClick={() => setChip(size)} aria-label={size + ' credit chip'} aria-pressed={chip === size}><ChipArtwork value={size} color={chipColors[i]} /></button>)}</div>
+      <div className="roulette-chip-options" aria-label="Chip size">{chipSizes.map((size, i) => <button type="button" key={size} className={'casino-chip chip-' + i + (chip === size ? ' selected' : '')} disabled={isLocked} onClick={() => setChip(size)} aria-label={size + ' credit chip'} aria-pressed={chip === size}><ChipArtwork value={size} color={chipColor(size)} /></button>)}</div>
       <Button className="roulette-spin-button" variant="primary" onClick={play} disabled={isLocked || total < 10 || total > credits}>{spinning ? 'Spinning…' : 'Spin'}</Button>
     </div>
     </div>
