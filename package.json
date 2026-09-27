@@ -1,0 +1,40 @@
+{
+  "name": "gorilla-tag-marketplace",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Gorilla Tag Marketplace web service",
+  "main": "server.cjs",
+  "scripts": {
+    "build": "vite build",
+    "start": "npm run build && node server.cjs",
+    "start:local": "npm run build && node local-dev.cjs",
+    "check": "node --check server.cjs && node --check app.js && node --check local-dev.cjs",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@electric-sql/pglite": "^0.3.2",
+    "@electric-sql/pglite-socket": "^0.0.7",
+    "@radix-ui/react-switch": "^1.3.7",
+    "@radix-ui/react-tabs": "^1.1.21",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "google-auth-library": "^11.1.0",
+    "lucide-react": "^1.48.0",
+    "motion": "^13.4.4",
+    "pg": "^8.23.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "tailwind-merge": "^3.7.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@vitejs/plugin-react": "^5.2.0",
+    "tailwindcss": "^4.3.3",
+    "vite": "^7.3.6"
+  }
+}

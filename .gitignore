@@ -1,0 +1,7 @@
+node_modules/
+casino-dist/
+.local-pg-data/
+.env
+.env.*
+!.env.example
+npm-debug.log*

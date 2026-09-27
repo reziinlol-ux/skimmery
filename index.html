@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#2B2B2B">
+  <meta name="description" content="Gorilla Tag Marketplace account listings and credits.">
+  <title>Gorilla Tag Marketplace</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bowlby+One+SC&family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="/casino-dist/casino-app.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Main navigation">
+      <a class="brand" href="#marketplace" aria-label="Gorilla Tag Marketplace home">
+        <span class="brand-name"><strong>Gorilla Tag</strong><span>Marketplace</span></span>
+        <span class="brand-mini" aria-hidden="true">GT</span>
+      </a>
+      <div class="brand-roll" aria-hidden="true">
+        <img src="assets/marketplace-mark-small.png" alt="">
+      </div>
+      <nav class="primary-nav">
+        <a class="nav-link active" href="#marketplace" data-page="marketplace" aria-label="Marketplace"><img src="icons/store.svg" alt=""><span>Marketplace</span></a>
+        <a class="nav-link" href="#purchases" data-page="purchases" aria-label="Your purchases"><img src="icons/receipt-text.svg" alt=""><span>Your purchases</span><span class="purchase-badge" id="purchase-badge" aria-hidden="true" hidden>0</span></a>
+        <a class="nav-link" href="#credits" data-page="credits" aria-label="Credits"><img src="icons/credit-card.svg" alt=""><span>Credits</span></a>
+        <a class="nav-link" href="#how-it-works" data-page="how-it-works" aria-label="How it works"><img src="icons/info.svg" alt=""><span>How it works</span></a>
+      </nav>
+      <div class="sidebar-separator" aria-hidden="true"></div>
+      <nav class="primary-nav policy-nav" aria-label="Policies">
+        <a class="nav-link" href="#terms" data-page="terms" aria-label="Terms of Service"><img src="icons/scroll-text.svg" alt=""><span>Terms of Service</span></a>
+        <a class="nav-link" href="#privacy" data-page="privacy" aria-label="Privacy Policy"><img src="icons/shield-check.svg" alt=""><span>Privacy Policy</span></a>
+      </nav>
+      <div class="sidebar-separator" aria-hidden="true"></div>
+      <nav class="primary-nav" aria-label="Games">
+        <div class="game-menu" id="game-menu">
+          <button class="nav-link casino-trigger" id="casino-trigger" type="button" aria-label="Casino games" aria-expanded="false" aria-controls="casino-dropdown">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-playing-cards casino-icon" aria-hidden="true"><path d="M14.832 8.445a1 1 0 00-1.589-.098l-2.075 3.098a1 1 0 000 1.11l2 3a1 1 0 001.664 0l2-3a1 1 0 000-1.11z"/><path d="m7.18 20.827-5-11a2 2 0 01.993-2.647L7 5.44"/><rect x="7" y="2" width="14" height="20" rx="2"/></svg>
+            <span>Casino</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down casino-chevron" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="games-dropdown" id="casino-dropdown" aria-hidden="true" inert>
+            <div class="games-dropdown-clip">
+              <nav class="games-dropdown-inner" aria-label="Casino games">
+                <button class="nav-link game-item" type="button" data-page="roulette" aria-pressed="false"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-loader-pinwheel" aria-hidden="true"><path d="M22 12a1 1 0 0 1-10 0 1 1 0 0 0-10 0"/><path d="M7 20.7a1 1 0 1 1 5-8.7 1 1 0 1 0 5-8.6"/><path d="M7 3.3a1 1 0 1 1 5 8.6 1 1 0 1 0 5 8.6"/><circle cx="12" cy="12" r="10"/></svg><span>Roulette</span></button>
+                <button class="nav-link game-item" type="button" data-page="chicken-cross"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-construction" aria-hidden="true"><rect x="2" y="6" width="20" height="8" rx="1"/><path d="M17 14v7"/><path d="M7 14v7"/><path d="M17 3v3"/><path d="M7 3v3"/><path d="M10 14 2.3 6.3"/><path d="m14 6 7.7 7.7"/><path d="m8 6 8 8"/></svg><span>Chicken Cross</span></button>
+                <button class="nav-link game-item" type="button" data-page="tower" aria-pressed="false"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chess-rook" aria-hidden="true"><path d="M5 20a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1z"/><path d="M10 2v2"/><path d="M14 2v2"/><path d="m17 18-1-9"/><path d="M6 2v5a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V2"/><path d="M6 4h12"/><path d="m7 18 1-9"/></svg><span>Tower</span></button>
+                <button class="nav-link game-item" type="button" data-page="coin-flip" aria-pressed="false"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-coins" aria-hidden="true"><path d="M13.744 17.736a6 6 0 1 1-7.48-7.48"/><path d="M15 6h1v4"/><path d="m6.134 14.768.866-.5 2 3.464"/><circle cx="16" cy="8" r="6"/></svg><span>Coin Flip</span></button>
+                <button class="nav-link game-item" type="button" data-page="wheel" aria-pressed="false"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-dot" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2"/><path d="M12 3v7"/></svg><span>Wheel</span></button>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="wallet-panel">
+          <div class="wallet-heading"><span>Credits</span></div>
+          <div class="wallet-balance"><img class="wallet-icon" src="icons/wallet-minimal.svg" alt=""><span id="sidebar-balance">—</span><span class="credits-label">credits</span></div>
+          <p>1 credit = $0.01</p>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-area">
+      <header class="topbar">
+        <div class="mobile-brand"><span class="brand-mark"><img src="assets/marketplace-mark-small.png" alt=""></span><span>Gorilla Tag Marketplace</span></div>
+        <div class="breadcrumb"><span>Store</span><span class="crumb-slash">/</span><span id="breadcrumb-current">Marketplace</span></div>
+        <div class="header-action-wrap wallet-center-wrap">
+          <button class="top-wallet" id="wallet-trigger" type="button" aria-label="Credits balance" aria-expanded="false"><img class="wallet-icon" src="icons/wallet-minimal.svg" alt=""><span id="top-balance">—</span><span class="credits-label">credits</span></button>
+          <section class="header-popover wallet-popover" id="wallet-popover" hidden aria-label="Credit balance conversion">
+            <div class="popover-heading"><strong>Your balance</strong><span id="wallet-username" hidden></span></div>
+            <div class="wallet-toggle" role="group" aria-label="Balance display">
+              <button class="active" id="wallet-mode-credits" type="button" aria-pressed="true">Credits</button>
+              <button id="wallet-mode-usd" type="button" aria-pressed="false">USD</button>
+            </div>
+            <div class="wallet-conversion"><strong id="wallet-converted">— credits</strong></div>
+            <a href="#credits" data-page="credits">Add credits <img src="icons/arrow-up-right.svg" alt=""></a>
+          </section>
+        </div>
+        <div class="topbar-right">
+          <div class="header-action-wrap virtual-credit-action">
+          <button class="tip-trigger" id="tip-trigger" type="button" aria-label="Tip credits" aria-expanded="false" title="Tip credits"><img src="icons/hand-coins.svg" alt=""></button>
+            <section class="header-popover tip-popover" id="tip-popover" hidden aria-label="Tip credits">
+              <div class="popover-heading"><strong>Send credits</strong></div>
+              <label>Username<input id="tip-username" autocomplete="off" maxlength="20" placeholder="Username"></label>
+              <label>Amount<div class="tip-amount-row"><input id="tip-amount" type="number" min="1" step="1" value="100"><select id="tip-currency" aria-label="Tip amount currency"><option value="credits">credits</option><option value="usd">USD</option></select></div></label>
+              <p class="popover-hint" id="tip-conversion">$1.00 = 100 credits</p>
+              <button class="popover-submit" id="tip-submit" type="button">Send tip</button>
+            </section>
+          </div>
+          <div class="header-action-wrap virtual-credit-action">
+            <button class="bonus-trigger" id="bonus-trigger" type="button" aria-label="Daily bonus" aria-expanded="false" title="Daily bonus"><img src="icons/gift.svg" alt=""></button>
+            <section class="header-popover bonus-popover" id="bonus-popover" hidden aria-label="Daily bonus">
+              <div class="popover-heading"><strong>Daily bonus</strong><button class="popover-submit" id="bonus-claim" type="button">Claim</button></div>
+              <p id="bonus-copy">Sign in and add credits to unlock your daily bonus.</p>
+            </section>
+          </div>
+          <a class="discord-link" href="https://discord.gg/Wq6B6aPzWQ" target="_blank" rel="noreferrer" aria-label="Join our Discord"><img src="icons/discord.svg" alt=""></a>
+          <div class="notification-wrap">
+            <button class="notification-button" id="notification-button" type="button" aria-label="Notifications" aria-expanded="false" aria-controls="notification-popover">
+              <img src="icons/bell.svg" alt=""><span class="notification-badge" id="notification-badge" hidden>0</span>
+            </button>
+            <section class="notification-popover" id="notification-popover" aria-label="Notifications" hidden>
+              <div class="popover-heading"><strong>Notifications</strong><span id="notification-count">0 new</span></div>
+              <div class="notification-list" id="notification-list"></div>
+            </section>
+          </div>
+          <div class="header-action-wrap profile-wrap">
+            <button class="avatar-button login-button" id="profile-trigger" type="button" aria-label="Log in with Google" aria-expanded="false"><img class="profile-avatar" id="profile-avatar" alt="" hidden><span id="profile-initial" hidden>G</span><span class="login-label" id="login-label">Log In</span></button>
+            <section class="header-popover profile-popover" id="profile-popover" hidden aria-label="Profile menu">
+              <div class="profile-summary"><img id="profile-picture" alt=""><div><strong id="profile-name">Signed out</strong><span id="profile-email">Continue with Google</span></div></div>
+              <button id="profile-action" type="button"><img src="icons/log-in.svg" alt=""><span>Continue with Google</span></button>
+            </section>
+          </div>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <section class="hero" id="marketplace" aria-labelledby="hero-title">
+          <div class="hero-copy">
+            <p class="hero-greeting" id="hero-greeting" hidden><span>Welcome back,</span> <strong id="hero-username"></strong></p>
+            <h1 id="hero-title">A fresh start<br>for your <span>Next Prime.</span></h1>
+            <p>Pick the account setup that fits how you play. Two simple packs, with the price up front.</p>
+            <a class="hero-link" href="#credits" data-page="credits">Buy credits <span aria-hidden="true"><img src="icons/arrow-up-right.svg" alt=""></span></a>
+          </div>
+          <div class="hero-art" aria-label="Gorilla Tag Marketplace and Steam">
+            <div class="art-orbit orbit-one"></div><div class="art-orbit orbit-two"></div>
+            <div class="hero-brand-pair"><img class="hero-market-mark" src="assets/marketplace-mark-small.png" alt="Gorilla Tag Marketplace"><span class="hero-link-mark"><img src="icons/steam.svg" alt="Steam"></span></div>
+            <div class="hero-art-caption"><strong>Gorilla Tag Marketplace</strong><span>Gorilla Tag accounts for Steam</span></div>
+          </div>
+        </section>
+
+        <section class="catalog-section" id="packs" aria-labelledby="catalog-title">
+          <div class="section-heading">
+            <h2 id="catalog-title">Choose your pack</h2>
+          </div>
+          <div class="product-grid">
+            <article class="product-card">
+              <div class="gift-art basic-gift" aria-hidden="true"><img src="icons/gift-basic.png" alt=""></div>
+              <h3>Basic Unbanned<br>Account</h3>
+              <p class="product-description">A basic unbanned account with a chance at cosmetics.</p>
+              <div class="account-odds" aria-label="Account odds">
+                <div><span>2022 account</span><strong>70%</strong></div>
+                <div><span>2023 account</span><strong>30%</strong></div>
+                <div><span>High-value account</span><strong>20%</strong></div>
+                <div><span>Low-value account</span><strong>80%</strong></div>
+                <div><span>OVR Advanced Settings</span><strong>15%</strong></div>
+              </div>
+              <div class="product-meta"><span>Price</span><span class="price">$8.99</span></div>
+              <div class="product-meta credit-meta"><span>Credits price</span><span><img class="credit-wallet-icon" src="icons/credit-card.svg" alt=""> 899 credits</span></div>
+              <button class="buy-button" type="button" data-product="basic" data-cost="899"><span>Choose Basic</span><img src="icons/arrow-up-right.svg" alt=""></button>
+            </article>
+            <div class="featured-wrap">
+              <div class="popular-badge"><img src="icons/star.svg" alt=""><span>Most Popular</span></div>
+            <article class="product-card featured-card">
+              <div class="gift-art cosmetic-gift" aria-hidden="true"><img src="icons/gift-cosmetic.png" alt=""></div>
+              <h3>Cosmetic Account</h3>
+              <p class="product-description">A higher chance of cosmetics and shiny rocks, including an OVR Advanced Settings account.</p>
+              <div class="account-odds" aria-label="Account odds">
+                <div><span>2022 account</span><strong>70%</strong></div>
+                <div><span>2023 account</span><strong>30%</strong></div>
+                <div><span>High-value account</span><strong>80%</strong></div>
+                <div><span>Low-value account</span><strong>20%</strong></div>
+                <div><span>OVR Advanced Settings</span><strong>50%</strong></div>
+              </div>
+              <div class="product-meta"><span>Price</span><span class="price">$15.00</span></div>
+              <div class="product-meta credit-meta"><span>Credits price</span><span><img class="credit-wallet-icon" src="icons/credit-card.svg" alt=""> 1,500 credits</span></div>
+              <button class="buy-button primary-buy" type="button" data-product="cosmetic" data-cost="1500"><span>Choose Cosmetic Account</span><img src="icons/arrow-up-right.svg" alt=""></button>
+            </article>
+            </div>
+          </div>
+        </section>
+
+        <section class="content-panel hidden" id="purchases-panel" aria-labelledby="purchases-title">
+          <h2 id="purchases-title">Your purchases</h2>
+          <div id="orders-list" class="orders-list"></div>
+        </section>
+        <section class="content-panel credits-panel hidden" id="credits-panel" aria-labelledby="credits-title">
+          <h2 id="credits-title">Add credits</h2>
+          <p class="credits-pricing-note">USD values are reference prices. Payments are not available yet.</p>
+          <div class="credit-grid" id="credit-grid">
+            <article class="credit-card"><div class="credit-card-icon"><img src="icons/credit-card.svg" alt=""></div><h3>900 credits</h3><p>More than enough for a Basic account.</p><button class="credit-button" type="button" data-credits="900">Add 900 credits</button></article>
+            <article class="credit-card"><div class="credit-card-icon"><img src="icons/credit-card.svg" alt=""></div><h3>1,600 credits</h3><p>Enough for the Cosmetic pack.</p><button class="credit-button" type="button" data-credits="1600">Add 1,600 credits</button></article>
+            <article class="credit-card"><div class="credit-card-icon"><img src="icons/credit-card.svg" alt=""></div><h3>2,000 credits</h3><p>A little left after a pack.</p><button class="credit-button" type="button" data-credits="2000">Add 2,000 credits</button></article>
+            <article class="credit-card"><div class="credit-card-icon"><img src="icons/credit-card.svg" alt=""></div><h3>3,000 credits</h3><p>Enough for two Basic packs.</p><button class="credit-button" type="button" data-credits="3000">Add 3,000 credits</button></article>
+            <article class="credit-card credit-card-large"><div class="credit-card-icon"><img src="icons/credit-card.svg" alt=""></div><h3>10,000 credits</h3><p>A large balance for several packs.</p><button class="credit-button" type="button" data-credits="10000">Add 10,000 credits</button></article>
+          </div>
+        </section>
+        <section class="content-panel hidden" id="how-panel" aria-labelledby="how-title">
+          <h2 id="how-title">How buying accounts works</h2>
+          <div class="how-list">
+            <article><span class="how-number">01</span><div><h3>Choose an account</h3><p>Compare the listing details and review the available account mix before choosing.</p></div></article>
+            <article><span class="how-number">02</span><div><h3>Confirm your order</h3><p>Review the credit amount before confirming. Your order appears in Your purchases.</p></div></article>
+            <article><span class="how-number">03</span><div><h3>Track your activity</h3><p>View credit activity, tips, and account order status in Your purchases.</p></div></article>
+          </div>
+        </section>
+        <section class="content-panel policy-panel hidden" id="terms-panel" aria-labelledby="terms-title">
+          <h2 id="terms-title">Terms of Service</h2>
+          <p class="policy-lead">These terms explain account access, credits, orders, and the rules that apply when the service is available.</p>
+          <div class="policy-list">
+            <article><h3>Eligibility and platform rules</h3><p>You must follow the rules for Google, Steam, Gorilla Tag, and any other service connected to an account. Steam's Subscriber Agreement describes accounts as personal and limits transfers. The marketplace does not authorize conduct those services prohibit. Review the current <a href="https://store.steampowered.com/subscriber_agreement/" target="_blank" rel="noreferrer">Steam Subscriber Agreement</a> and <a href="https://www.gorillatagvr.com/terms-of-service" target="_blank" rel="noreferrer">Gorilla Tag Terms of Service</a>.</p></article>
+            <article><h3>Listings and odds</h3><p>Displayed listing percentages are supplied by the marketplace operator and are not independently audited. The 2022 and 2023 account percentages, value tiers, and OVR Advanced Settings percentages describe separate attributes and may not add up to 100%. No particular account or attribute is guaranteed.</p></article>
+            <article><h3>Credits and tips</h3><p>Credits are an internal unit. The displayed conversion is an estimate and does not make credits redeemable for cash. Sending a tip is final after it is confirmed. Credit additions and account orders are subject to availability and any payment terms shown at checkout.</p></article>
+            <article><h3>Account orders and support</h3><p>Account orders are unavailable until the operator confirms that the listed inventory can be transferred lawfully and securely. Never share your Google password or verification codes with the marketplace. Support contact details must be published by the operator before public sales begin.</p></article>
+            <article><h3>Changes and contact</h3><p>The operator may update listings, features, and these terms. Before public launch, the operator must add its legal name, contact details, governing-law information, and any required consumer notices here.</p></article>
+          </div>
+        </section>
+        <section class="content-panel policy-panel hidden" id="privacy-panel" aria-labelledby="privacy-title">
+          <h2 id="privacy-title">Privacy Policy</h2>
+          <p class="policy-lead">This policy describes the information the marketplace is designed to handle when connected to its hosted service.</p>
+          <div class="policy-list">
+            <article><h3>Information collected</h3><p>When you sign in with Google, the service receives your Google account identifier, verified email address, and profile image. It also stores the username you choose, credit balance and ledger entries, tips, order status, notifications, and security session records.</p></article>
+            <article><h3>How information is used</h3><p>Account information is used to sign you in, reserve your username, show your balance and activity, route tips, prevent fraud, and provide support. The service does not need your Google password and does not receive it through Google sign-in.</p></article>
+            <article><h3>Storage and service providers</h3><p>Marketplace records are intended to be stored in a private PostgreSQL database hosted by Railway. Google handles sign-in. Railway and Google process data under their own terms. The app uses session cookies to keep you signed in. The service does not sell profile or account information.</p></article>
+            <article><h3>Retention and security</h3><p>Session records expire after 30 days and can be revoked at sign-out. Account and ledger records need a published deletion and retention schedule before public launch. Passwords and Google access tokens are not stored by the marketplace. Do not submit payment card details in this app.</p></article>
+            <article><h3>Your choices and contact</h3><p>You can sign out from the profile menu. Requests to access or delete account information must be handled by the operator. Before public launch, the operator must publish a contact address, legal identity, retention schedule, and the privacy rights that apply in the places it serves.</p></article>
+          </div>
+        </section>
+        <section class="content-panel casino-panel hidden" id="casino-panel" aria-label="Casino games"><div id="casino-app"><div class="casino-starting" role="status">Loading casino…</div></div></section>
+      </div>
+    </main>
+  </div>
+
+  <dialog class="purchase-dialog" id="purchase-dialog" aria-labelledby="dialog-title">
+    <button class="dialog-close" id="dialog-close" type="button" aria-label="Close"><img src="icons/x.svg" alt=""></button>
+    <div class="dialog-mark"><img src="icons/shopping-bag.svg" alt=""></div>
+        <h2 id="dialog-title" tabindex="-1">Confirm this pack?</h2>
+    <p class="dialog-copy" id="dialog-copy"></p>
+    <div class="dialog-summary"><span id="dialog-product"></span><strong id="dialog-cost"></strong></div>
+    <p class="dialog-warning">Account orders are currently unavailable. No credits will be charged.</p>
+    <div class="dialog-actions"><button class="cancel-button" id="dialog-cancel" type="button">Go back</button><button class="confirm-button" id="dialog-confirm" type="button">Confirm order</button></div>
+  </dialog>
+  <dialog class="auth-dialog" id="auth-dialog" aria-labelledby="auth-title">
+    <button class="dialog-close" data-close-dialog="auth-dialog" type="button" aria-label="Close"><img src="icons/x.svg" alt=""></button>
+    <div class="google-mark" aria-hidden="true"><svg viewBox="0 0 48 48"><path fill="#4285F4" d="M43.6 24.5c0-1.4-.1-2.7-.4-4H24v7.6h11a9.4 9.4 0 0 1-4.1 6.2v5h6.7c3.9-3.6 6-8.8 6-14.8Z"/><path fill="#34A853" d="M24 44c5.5 0 10.1-1.8 13.5-4.8l-6.7-5c-1.8 1.2-4 2-6.8 2-5.2 0-9.6-3.5-11.2-8.2H5.9v5.2A20 20 0 0 0 24 44Z"/><path fill="#FBBC05" d="M12.8 28a12 12 0 0 1 0-7.9v-5.2H5.9a20 20 0 0 0 0 18.3l6.9-5.2Z"/><path fill="#EA4335" d="M24 11.9c3 0 5.7 1 7.8 3.1l5.9-5.9A19.7 19.7 0 0 0 24 4 20 20 0 0 0 5.9 14.9l6.9 5.2C14.4 15.4 18.8 11.9 24 11.9Z"/></svg></div>
+    <h2 id="auth-title">Sign in</h2>
+    <p id="auth-copy">Sign in to use credits, send tips, and manage purchases.</p>
+    <form id="email-auth-form" class="email-auth-form">
+      <label>Email<input id="email-auth-address" type="email" autocomplete="email" required maxlength="254" placeholder="you@example.com"></label>
+      <label>Password<input id="email-auth-password" type="password" autocomplete="current-password" required minlength="8" maxlength="128" placeholder="At least 8 characters"></label>
+      <button id="email-auth-submit" type="submit">Sign in</button>
+      <button id="email-auth-mode" type="button">Create an account</button>
+    </form>
+    <a class="google-signin" href="/auth/google/start"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#4285F4" d="M43.6 24.5c0-1.4-.1-2.7-.4-4H24v7.6h11a9.4 9.4 0 0 1-4.1 6.2v5h6.7c3.9-3.6 6-8.8 6-14.8Z"/><path fill="#34A853" d="M24 44c5.5 0 10.1-1.8 13.5-4.8l-6.7-5c-1.8 1.2-4 2-6.8 2-5.2 0-9.6-3.5-11.2-8.2H5.9v5.2A20 20 0 0 0 24 44Z"/><path fill="#FBBC05" d="M12.8 28a12 12 0 0 1 0-7.9v-5.2H5.9a20 20 0 0 0 0 18.3l6.9-5.2Z"/><path fill="#EA4335" d="M24 11.9c3 0 5.7 1 7.8 3.1l5.9-5.9A19.7 19.7 0 0 0 24 4 20 20 0 0 0 5.9 14.9l6.9 5.2C14.4 15.4 18.8 11.9 24 11.9Z"/></svg><span>Continue with Google</span></a>
+    <p class="auth-error" id="auth-error" hidden>Google sign-in is not configured yet.</p>
+  </dialog>
+  <dialog class="username-dialog" id="username-dialog" aria-labelledby="username-title">
+    <h2 id="username-title">Choose your username</h2>
+    <label class="username-label">Username<input id="username-input" autocomplete="username" minlength="3" maxlength="20" pattern="[A-Za-z0-9_]{3,20}" placeholder="3 to 20 letters, numbers, or underscores"></label>
+    <p class="auth-error" id="username-error" hidden></p>
+    <button class="username-submit" id="username-submit" type="button">Create account</button>
+  </dialog>
+  <canvas class="confetti-canvas" id="confetti-canvas" aria-hidden="true"></canvas>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="/casino-guard.js" defer></script>
+  <script src="/casino-dist/casino-app.js" defer></script>
+  <script src="app.js" defer></script>
+</body>
+</html>
+

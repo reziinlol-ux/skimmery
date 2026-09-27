@@ -1,0 +1,1 @@
+﻿Full project backups are encrypted with AES-256-GCM. The recovery key stays locally in D:\!GTAGMARKETPLACE\casino-full-backups\backup-recovery-key.bin. Each archive contains the entire original project, including local configuration and dependencies. Keep a separate copy of the recovery key. The local sync-github-backups.ps1 and encrypt-backup.cjs scripts manage these snapshots.
