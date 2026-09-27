@@ -294,7 +294,7 @@
   if (location.hash === '#signin-error') { $('auth-error').hidden = false; $('auth-error').textContent = 'Google sign-in could not be completed. Please try again.'; setAuthDialog(); }
   const isCasinoPage = ['roulette', 'tower', 'coin-flip', 'chicken-cross', 'wheel'].includes(initialPage);
   if (isCasinoPage) nav(initialPage);
-  api('/api/config').then((data) => { state.testTopupsEnabled = Boolean(data.testTopupsEnabled); updateWallet(); }).catch(() => {});
+  api('/api/config').then((data) => { state.testTopupsEnabled = Boolean(data.testTopupsEnabled); document.querySelector('.google-signin').hidden = !data.googleClientId; updateWallet(); }).catch(() => {});
   loadMe().then(() => { updateWallet(); if (!isCasinoPage) nav(initialPage); });
 })();
 

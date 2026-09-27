@@ -504,3 +504,5 @@ button:focus-visible, a:focus-visible { outline: 2px solid #fff; outline-offset:
 
 #email-auth-mode { background:transparent;color:#aaa;min-height:28px;font-size:12px; }
 .auth-dialog .google-mark { display:none; }
+
+.google-signin[hidden] { display:none; }

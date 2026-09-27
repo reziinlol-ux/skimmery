@@ -90,8 +90,8 @@ function CasinoApp() {
 
   useEffect(() => {
     setCasinoMuted(muted);
-    writeCasinoState({ credits, muted, history });
-  }, [credits, muted, history]);
+    writeCasinoState({ credits: accountWallet ? initial.credits : credits, muted, history });
+  }, [credits, muted, history, accountWallet]);
 
   useEffect(() => {
     if (!win) return;
