@@ -150,9 +150,9 @@ function oauthClientId() { return process.env.GOOGLE_CLIENT_ID || ''; }
 app.get('/api/health', route(async (_req, res) => {
   if (!process.env.DATABASE_URL) return sendError(res, 503, 'database_not_configured', 'Marketplace database is not configured.');
   await pool.query('select 1');
-  res.json({ ok: true });
+  res.json({ ok: true, version: 'casino-wallet-20260927', uiHash: crypto.createHash('sha256').update(fs.readFileSync(path.join(root, 'casino-dist/casino-app.js'))).digest('hex').slice(0, 16) });
 }));
-app.get('/api/config', (_req, res) => res.json({ googleClientId: oauthClientId(), databaseConfigured: Boolean(process.env.DATABASE_URL), testTopupsEnabled, emailConfigured: Boolean(process.env.RESEND_API_KEY && process.env.EMAIL_FROM) || !production, localEmailPreview: !production && !process.env.RESEND_API_KEY }));
+app.get('/api/config', (_req, res) => res.json({ googleClientId: oauthClientId(), databaseConfigured: Boolean(process.env.DATABASE_URL), testTopupsEnabled, emailConfigured: Boolean(pendingKey), emailVerificationRequired: false, localEmailPreview: !production && !process.env.RESEND_API_KEY }));
 app.use('/api', (req, res, next) => {
   if (!process.env.DATABASE_URL && req.path !== '/config' && req.path !== '/health') return sendError(res, 503, 'database_not_configured', 'Marketplace database is not configured.');
   next();

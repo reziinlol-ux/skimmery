@@ -105,7 +105,7 @@ module.exports = function register({ app, pool, route, currentUser, requireSameO
   app.post('/api/casino/action', requireSameOrigin, currentUser, route(async(req,res)=> {
     const [roulette,chicken,tower,coin,wheel]=await engines;
     const {action,game,options={},roundId,actionId}=req.body || {};
-    if (!/^[0-9a-f-]{36}$/i.test(actionId || '')) return sendError(res,400,'invalid_action','Invalid action ID.');
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(actionId || '')) return sendError(res,400,'invalid_action','Invalid action ID.');
     const result=await userTransaction(req,async db=> {
       await db.query('insert into casino_wallets(user_id) values($1) on conflict do nothing',[req.user.id]);
       const wallet=(await db.query('select balance from casino_wallets where user_id=$1 for update',[req.user.id])).rows[0];
