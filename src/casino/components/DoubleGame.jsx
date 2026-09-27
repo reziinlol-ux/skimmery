@@ -14,6 +14,7 @@ export function DoubleGame({ credits, locked, startRound, finishRound }) {
   const [spinning, setSpinning] = useState(false);
   const [items, setItems] = useState(() => Array.from({ length: 29 }, spinDouble));
   const [offset, setOffset] = useState(0);
+  const [spinId, setSpinId] = useState(0);
   const [stageWidth, setStageWidth] = useState(880);
   const [lastResult, setLastResult] = useState(null);
   const stageRef = useRef(null);
@@ -43,6 +44,7 @@ export function DoubleGame({ credits, locked, startRound, finishRound }) {
     setItems(next);
     setLastResult(null);
     setOffset(-(LANDING_SLOT * TILE_STEP + 44 - stageWidth / 2));
+    setSpinId((id) => id + 1);
     setSpinning(true);
     casinoSound('spin');
     timerRef.current = window.setTimeout(() => {
@@ -69,7 +71,7 @@ export function DoubleGame({ credits, locked, startRound, finishRound }) {
       <div className="double-scene-heading"><span>DOUBLE</span><strong>{spinning ? 'Rolling' : lastResult ? `${lastResult.label} landed` : 'Ready when you are'}</strong></div>
       <div ref={stageRef} className="double-reel-stage">
         <div className="double-reel-pointer" aria-hidden="true" />
-        <motion.div className="double-reel-track" animate={{ x: spinning ? offset : 0 }} transition={{ x: { duration: reduced ? 0 : spinning ? 5.6 : 0, ease: [.14,.04,.12,1] } }}>
+        <motion.div key={spinId} className="double-reel-track" initial={{ x: 0 }} animate={{ x: offset }} transition={{ x: { duration: reduced ? 0 : 5.6, ease: [.14,.04,.12,1] } }}>
           {items.map((item, index) => <div className="double-reel-tile" style={{ '--tile-color': item.color }} key={`${index}-${item.key}`}><span>{item.label.split(' ')[0]}</span><strong>{item.label.split(' ').slice(1).join(' ')}</strong></div>)}
         </motion.div>
       </div>
