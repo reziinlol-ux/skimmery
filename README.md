@@ -1,12 +1,12 @@
 # Gorilla Tag Marketplace
 
-Single-origin Node service with a PostgreSQL-backed account, wallet, order history, notification, tip, and daily-bonus API. Google sign-in uses the OAuth authorization-code flow with PKCE, state, nonce, verified email, and a server-side revocable session. The app does not store Google access tokens.
+Single-origin Node service with a PostgreSQL-backed account, wallet, order history, notification, tip, and daily-bonus API. Email-and-password signup is available without email verification, with unique email addresses and one new account per IP. Passwords use salted scrypt hashes. Optional Google sign-in uses the OAuth authorization-code flow with PKCE, state, nonce, verified email, and a server-side revocable session. The app does not store Google access tokens.
 
 ## Local run
 
-1. Install Node.js 20 or newer and run `npm ci`.
-2. Create a Google OAuth web client for local work. Add `http://localhost:4179` as an authorized JavaScript origin and `http://localhost:4179/auth/google/callback` as an authorized redirect URI. Add its client ID, secret, and two independent 32-byte signing keys to `.env`.
-3. Run `npm run start:local`, then open `http://localhost:4179`. This starts a persistent PGlite database in `.local-pg-data`, applies the schema, and launches the app with a separate `NOBYPASSRLS` runtime role. The local database is bound to `127.0.0.1` only. Its role is recreated with a random password on each launch.
+1. Install Node.js 22 or newer and run `npm ci`.
+2. Set `PORT=4000`, `APP_ORIGIN=http://localhost:4000`, and two independent 32-byte signing keys in `.env`. Email/password sign-in does not require Google. For optional Google sign-in, create a Google OAuth web client for local work. Add `http://localhost:4000` as an authorized JavaScript origin and `http://localhost:4000/auth/google/callback` as an authorized redirect URI. Add its client ID, secret, and two independent 32-byte signing keys to `.env`.
+3. Run `npm run start:local`, then open `http://localhost:4000`. This starts a persistent PGlite database in `.local-pg-data`, applies the schema, and launches the app with a separate `NOBYPASSRLS` runtime role. The local database is bound to `127.0.0.1` only. Its role is recreated with a random password on each launch.
 
 The PGlite launcher is for local development only. Its PostgreSQL wire server does not provide TLS and must stay bound to loopback. It enables test credit top-ups on localhost. Do not use it or its database files for production; deploy to a private Railway PostgreSQL service using the production role setup below.
 
@@ -32,7 +32,7 @@ GRANT EXECUTE ON FUNCTION marketplace_claim_daily_bonus(uuid, bigint),
   marketplace_cleanup_rate_limits() TO marketplace_runtime;
 ```
 
-The `SECURITY DEFINER` procedure owner must be a distinct migration role with `BYPASSRLS` and own the protected tables. The runtime role must not own tables or procedures and must not have `BYPASSRLS`. Keep the migration owner credentials out of the Railway web service. Store only the runtime connection in the app's `DATABASE_URL`.
+The `SECURITY DEFINER` procedure owner must be a distinct migration role with `BYPASSRLS` and own the protected tables. The runtime role must not own tables or procedures and must not have `BYPASSRLS`. The current Railway setup uses `MIGRATION_DATABASE_URL` only for the startup migration connection. `DATABASE_URL` uses the separate `marketplace_app` runtime role. `migrate.cjs` applies both schemas and grants; none of these credentials are sent to the browser.
 
 Do not grant `marketplace_test_topup` to the production role. A separate local-only database role may receive that grant for development. The public test-top-up endpoint is enabled only when the server is explicitly in development and `APP_ORIGIN` is a loopback HTTP origin. Production database connections require TLS. RLS is defense in depth against query mistakes; because PostgreSQL custom settings are writable by a connected role, a stolen runtime database credential can forge the application user context. Keep the database private, protect Railway secrets, and use only the least-privilege runtime role.
 
@@ -53,3 +53,13 @@ The Railway database and domain are not provisioned by this code. Review Railway
 - Tips move whole credits between two wallets in one transaction. Both balances are locked in stable user-ID order and requests require idempotency keys.
 - Account checkout is deliberately disabled and does not debit credits. Steam's Subscriber Agreement describes accounts as personal and restricts sales/transfers. The service has no account-inventory table, no password vault, and no credential-delivery route.
 - The terms and privacy text are implementation drafts. The operator must add its legal name, contact address, retention periods, jurisdiction, and user-rights contact before public launch.
+
+## Saved casino credits
+
+Signed-in casino balances and round outcomes are saved in PostgreSQL. New casino wallets receive 100,000 virtual play credits; this is separate from the marketplace purchase wallet. Guests retain a local demo balance. Casino results, stake debits, cashouts and the eight-win Wheel limit are enforced by the server, with transaction locks and idempotent actions. Reloading offers a cashout or an end-round action for an unfinished saved round.
+
+Wheel adds an 8% loss gate for each consecutive win, capped at 70%, and cashes out automatically after eight wins. Chicken Cross survival decreases by 2.5 percentage points at each step. These games use configured risk probabilities.
+
+## Backups
+
+A full local autosave watcher runs from `D:\!GTAGMARKETPLACE\casino-full-backups`. It groups rapid saves after an eight-second pause, then syncs complete encrypted snapshot manifests and shared payloads to the private GitHub repository. The recovery key stays locally. See `RESTORE-BACKUPS.md` in that folder for restoration. The running service uses the D-drive project; avoid editing the older Downloads copy.
