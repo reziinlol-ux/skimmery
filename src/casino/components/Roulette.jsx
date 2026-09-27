@@ -163,19 +163,18 @@ export function Roulette({ credits, locked, startRound, finishRound }) {
       </div></div>
     <div className={'roulette-chip-row' + (customEditing ? ' custom-chip-open' : '')} role="group" aria-label="Bet amount, chip size, and spin">
       <span className="wager-total">{formatCredits(total)} <small>bet</small></span>
-      <div className="roulette-chip-options" aria-label="Chip size">{chipSizes.map((size, i) => <button type="button" key={size} className={'casino-chip chip-' + i + (!customSelected && chip === size ? ' selected' : '')} disabled={isLocked} onClick={() => { setChip(size); setCustomSelected(false); setCustomEditing(false); }} aria-label={size + ' credit chip'} aria-pressed={!customSelected && chip === size}><ChipArtwork value={size} color={chipColor(size)} /></button>)}</div>
+      <div className={"roulette-chip-options" + (customEditing ? " custom-chip-open" : "")} aria-label="Chip size">{chipSizes.map((size, i) => <button type="button" key={size} className={'casino-chip chip-' + i + (!customSelected && chip === size ? ' selected' : '')} disabled={isLocked} onClick={() => { setChip(size); setCustomSelected(false); setCustomEditing(false); }} aria-label={size + ' credit chip'} aria-pressed={!customSelected && chip === size}><ChipArtwork value={size} color={chipColor(size)} /></button>)}
       <div className={'roulette-custom-chip' + (customSelected ? ' active' : '') + (customEditing ? ' editing' : '')}>
         <button type="button" className="custom-chip-preview" disabled={isLocked} aria-label={customAmount === null ? 'Set a custom chip amount' : `Select ${customAmount} credit custom chip`} aria-pressed={customSelected} onClick={() => {
           if (customAmount === null) openCustomEditor();
           else { setChip(customAmount); setCustomSelected(true); setCustomEditing(false); }
         }}><ChipArtwork value={customAmount} color={customAmount === null ? '#8065ab' : chipColor(customAmount)} /></button>
-        <button ref={customPen} type="button" className="custom-chip-pen" disabled={isLocked} onClick={openCustomEditor} aria-label="Edit custom chip amount" aria-expanded={customEditing} aria-controls="roulette-custom-editor"><Pencil size={14} /></button>
+        <motion.button ref={customPen} type="button" className="custom-chip-pen" disabled={isLocked} onClick={openCustomEditor} aria-label="Edit custom chip amount" aria-expanded={customEditing} aria-controls="roulette-custom-editor" initial={false} animate={{ x: customEditing && !reduced ? 10 : 0 }} transition={{ duration: reduced ? 0 : .2, ease: [.22,1,.36,1] }}><Pencil size={14} /></motion.button>
         <AnimatePresence initial={false}>
           {customEditing && <motion.form id="roulette-custom-editor" className="roulette-custom-editor" onSubmit={saveCustomAmount}
-            initial={{ opacity: 0, x: reduced ? 0 : 8, clipPath: reduced ? 'inset(0 0 0 0)' : 'inset(0 0 0 75% round 24px)' }}
-            animate={{ opacity: 1, x: 0, clipPath: 'inset(0 0 0 0 round 24px)' }}
-            exit={{ opacity: 0, x: reduced ? 0 : 8 }} transition={{ duration: reduced ? 0 : .22, ease: [.22,1,.36,1] }}>
-            <span className="custom-editor-chip"><ChipArtwork value={validCustomAmount ? draftAmount : null} color={validCustomAmount ? chipColor(draftAmount) : '#8065ab'} /></span>
+            initial={{ opacity: 0, x: reduced ? 0 : 6 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: reduced ? 0 : 4 }} transition={{ duration: reduced ? 0 : .22, delay: reduced ? 0 : .12, ease: [.22,1,.36,1] }}>
             <input ref={customInput} type="text" inputMode="numeric" pattern="[0-9]+" value={customDraft} placeholder="Min. 10" aria-label="Custom chip amount, whole credits, minimum 10" disabled={isLocked}
               aria-invalid={customDraft !== '' && !validCustomAmount} onChange={(event) => { if (/^\d*$/.test(event.target.value)) setCustomDraft(event.target.value); }}
               onKeyDown={(event) => { if (event.key === 'Escape') { event.preventDefault(); closeCustomEditor(); } }} />
@@ -183,6 +182,7 @@ export function Roulette({ credits, locked, startRound, finishRound }) {
             <button type="submit" className="custom-editor-save" disabled={!validCustomAmount || isLocked}>Save</button>
           </motion.form>}
         </AnimatePresence>
+      </div>
       </div>
       <Button className="roulette-spin-button" variant="primary" onClick={play} disabled={isLocked || customEditing || total < 10 || total > credits}>{spinning ? 'Spinning…' : 'Spin'}</Button>
     </div>
