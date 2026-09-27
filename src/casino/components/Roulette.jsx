@@ -138,14 +138,14 @@ export function Roulette({ credits, locked, startRound, finishRound }) {
   };
   const groupButton = (key) => {
     const group = rouletteGroups.find((item) => item.key === key), amount = amountFor(key);
-    return <button key={key} type="button" disabled={isLocked || customEditing} onClick={() => addBet(group)} className={'roulette-bet roulette-group ' + (amount ? 'has-bet ' : '') + (result !== null && betWins(group, result) ? 'winning-bet' : '')} aria-label={'Bet on ' + group.label + ', pays ' + (group.type === 'column' ? '2 to 1' : netOddsForBet(group).toFixed(2) + ' to 1')}>
+    return <button key={key} type="button" disabled={isLocked || customEditing} onClick={() => addBet(group)} className={'roulette-bet roulette-group ' + (amount ? 'has-bet ' : '') + (amount ? ' bet-selected' : '') + (result !== null && betWins(group, result) ? ' landed-match' : '')} aria-label={'Bet on ' + group.label + ', pays ' + (group.type === 'column' ? '2 to 1' : netOddsForBet(group).toFixed(2) + ' to 1')}>
       {group.type === 'color' ? <span className={'color-diamond ' + group.value} /> : <span>{labelFor(group)}</span>}
       {amount && placedChip(key)}
     </button>;
   };
   const numberButton = (n) => {
     const key = 'number-' + n, amount = amountFor(key);
-    return <button key={n} type="button" disabled={isLocked || customEditing} onClick={() => addBet(numberBet(n))} aria-label={'Bet on ' + n} className={'roulette-bet roulette-number ' + pocketClass(n) + (amount ? ' has-bet' : '') + (result === n ? ' winning-number' : '')}><span>{n}</span>{amount && placedChip(key)}</button>;
+    return <button key={n} type="button" disabled={isLocked || customEditing} onClick={() => addBet(numberBet(n))} aria-label={'Bet on ' + n} className={'roulette-bet roulette-number ' + pocketClass(n) + (amount ? ' has-bet bet-selected' : '') + (result === n ? ' landed-match' : '')}><span>{n}</span>{amount && placedChip(key)}</button>;
   };
 
   return <div className="roulette-game">
@@ -161,10 +161,10 @@ export function Roulette({ credits, locked, startRound, finishRound }) {
         <div className="outside-bets">{['low','even','red','black','odd','high'].map(groupButton)}</div>
         <button type="button" className="table-tool table-clear" disabled={isLocked || !bets.length} onClick={clear} aria-label="Clear bets"><RotateCcw size={18} /></button>
       </div></div>
-    <div className="roulette-chip-row" role="group" aria-label="Bet amount, chip size, and spin">
+    <div className={'roulette-chip-row' + (customEditing ? ' custom-chip-open' : '')} role="group" aria-label="Bet amount, chip size, and spin">
       <span className="wager-total">{formatCredits(total)} <small>bet</small></span>
       <div className="roulette-chip-options" aria-label="Chip size">{chipSizes.map((size, i) => <button type="button" key={size} className={'casino-chip chip-' + i + (!customSelected && chip === size ? ' selected' : '')} disabled={isLocked} onClick={() => { setChip(size); setCustomSelected(false); setCustomEditing(false); }} aria-label={size + ' credit chip'} aria-pressed={!customSelected && chip === size}><ChipArtwork value={size} color={chipColor(size)} /></button>)}</div>
-      <div className={'roulette-custom-chip' + (customSelected ? ' active' : '')}>
+      <div className={'roulette-custom-chip' + (customSelected ? ' active' : '') + (customEditing ? ' editing' : '')}>
         <button type="button" className="custom-chip-preview" disabled={isLocked} aria-label={customAmount === null ? 'Set a custom chip amount' : `Select ${customAmount} credit custom chip`} aria-pressed={customSelected} onClick={() => {
           if (customAmount === null) openCustomEditor();
           else { setChip(customAmount); setCustomSelected(true); setCustomEditing(false); }

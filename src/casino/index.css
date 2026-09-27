@@ -53,9 +53,9 @@
 .roulette-wheel-depth { position: absolute; inset: 0; transform: translateY(26px); border-radius: 50%; background: #343639; box-shadow: 0 22px 30px #0003; }
 .roulette-wheel-base { filter: drop-shadow(0 3px 1px #0003); }
 .roulette-wheel-disc { transform-origin: center; }
-.roulette-ball-orbit { position: absolute; inset: 0; transform-style: preserve-3d; pointer-events: none; }
+.roulette-ball-orbit { position: absolute; z-index: 4; inset: 0; transform-style: preserve-3d; pointer-events: none; }
 /* Counter-rotate the sphere's canvas to face the viewer while its 3D surface rolls. */
-.roulette-ball-anchor { position: absolute; top: 6.2%; left: calc(50% - 8px); width: 16px; height: 16px; transform-style: preserve-3d; }
+.roulette-ball-anchor { position: absolute; top: 3.5%; left: calc(50% - 8px); width: 16px; height: 16px; transform-style: preserve-3d; }
 .roulette-ball-billboard { display: block; width: 100%; height: 100%; transform: rotateX(-48deg); }
 .roulette-ball-sphere { display: block; width: 100%; height: 100%; border-radius: 50%; background: radial-gradient(circle at 30% 25%,#fff,#b6bec7 70%,#717983); filter: drop-shadow(1px 3px 2px #0007); }
 .wheel-spindle { position: absolute; top: 36%; left: 50%; width: 60px; height: 87px; transform: translateX(-50%); }
@@ -73,8 +73,8 @@
 .roulette-number.red { background: #ff3048; border-color: #ff667a; }
 .roulette-number.black { background: #232426; }
 .roulette-number.green { background: #00c878; }
-.roulette-bet.winning-number, .roulette-bet.winning-bet { border: 2px solid #a3f2c3; box-shadow: inset 0 0 0 1px #a3f2c3,0 0 14px #7beaaf22; }
-.roulette-bet.has-bet { border-color: #91b9f5; }
+.roulette-bet.landed-match { border: 1.5px solid #4d8ee7; box-shadow: inset 0 0 0 1px #4d8ee733,0 0 7px #4d8ee722; }
+.roulette-bet.bet-selected { border: 1.5px solid #65d99d; box-shadow: inset 0 0 0 1px #65d99d55,0 0 7px #65d99d22; }
 .placed-chip-stack { position: absolute; z-index: 1; top: 50%; left: 50%; width: 26px; height: 26px; transform: translate(-50%,-50%); pointer-events: none; }
 .placed-chip-stack i { position: absolute; top: 50%; left: 50%; display: grid; width: 25px; height: 25px; transform: translate(-50%,calc(-50% + var(--stack-offset))); place-items: center; overflow: hidden; padding: 0 1px; border: 2px dashed #d8e0ea; border-radius: 50%; background: #596674; box-shadow: inset 0 0 0 1px #ffffff35,0 1px 1px #111; color: #fff; font: 700 7px/1 "DM Sans",sans-serif; font-style: normal; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .placed-chip-stack i::after { position: absolute; inset: 3px; border: 1px solid #ffffff45; border-radius: inherit; content: ""; pointer-events: none; }
@@ -103,7 +103,9 @@
 .table-tool:not(:disabled):hover { color: #f3f3f3; background: #3b3d42; }
 .table-undo { grid-column: 1; }.table-clear { grid-column: 3; }
 .roulette-chip-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 16px -18px 0; padding: 14px; border-top: 1px solid #ffffff0b; }
+.roulette-chip-row.custom-chip-open { justify-content: flex-start; overflow: visible; }
 .roulette-chip-options { display: flex; min-width: 0; align-items: center; justify-content: center; gap: 10px; }
+.roulette-chip-options.custom-chip-open { flex: none; justify-content: flex-start; padding-right: 300px; }
 .casino-chip { position: relative; display: grid; width: 42px; height: 42px; flex: none; place-items: center; padding: 0; border: 3px dashed #d8e0ea; border-radius: 50%; background: #596674; box-shadow: inset 0 0 0 2px #ffffff35, 0 2px 1px #111; color: #fff; font-size: 11px; font-weight: 700; transition: transform .16s, outline-color .16s; }
 .casino-chip::after { position: absolute; inset: 5px; border: 1px solid #ffffff35; border-radius: inherit; content: ""; }
 
@@ -382,13 +384,14 @@ body.roulette-game-active { height: 100dvh; overflow: hidden; }
 .lane-marker.next { background:#ffffff06; }
 .lane-marker.next:hover:not(:disabled) { box-shadow:none;background:#ffffff0d; }
 
-/* Custom chip editor: anchored beside the preset chips, revealing toward the left. */
+/* The chip stays anchored after $500 while its editor reveals to the right. */
 .roulette-custom-chip { position: relative; display: flex; align-items: center; flex: none; height: 44px; padding: 3px 6px 3px 3px; gap: 2px; border-radius: 24px; background: #303136; }
+.roulette-custom-chip.editing { margin-right: calc(min(290px,75vw) + 8px); }
 .roulette-custom-chip.active { outline: 2px solid #84b2f2; outline-offset: 3px; }
 .custom-chip-preview { display: block; flex: none; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 50%; background: transparent; }
 .custom-chip-pen { display: grid; width: 26px; height: 32px; place-items: center; border: 0; border-radius: 50%; background: transparent; color: #b9bdc7; }
 .custom-chip-pen:not(:disabled):hover { color: #fff; background: #ffffff08; }
-.roulette-custom-editor { position: absolute; z-index: 5; right: 0; top: 0; display: flex; align-items: center; gap: 6px; width: min(290px,75vw); height: 44px; padding: 4px 6px 4px 3px; border-radius: 24px; background: #303136; box-shadow: 0 0 0 1px #ffffff12; }
+.roulette-custom-editor { position: absolute; z-index: 5; left: calc(100% + 7px); right: auto; top: 0; display: flex; align-items: center; gap: 6px; width: min(290px,75vw); height: 44px; padding: 4px 6px 4px 3px; border-radius: 24px; background: #303136; box-shadow: 0 0 0 1px #ffffff12; }
 .custom-editor-chip { display: block; flex: none; width: 36px; height: 36px; }
 .roulette-custom-editor input { min-width: 0; width: 100%; height: 32px; padding: 0 3px; border: 0; background: transparent; outline: none; color: #f3f3f3; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .roulette-custom-editor input::placeholder { color: #929292; font-weight: 400; }
@@ -398,4 +401,11 @@ body.roulette-game-active { height: 100dvh; overflow: hidden; }
 .custom-editor-undo:hover { color: #f3f3f3; }
 .custom-editor-save { background: #4d8ee7; color: #fff; }
 .custom-editor-save:disabled { background: #42444a; color: #929292; }
-@media (max-width: 480px) { .roulette-custom-chip { height: 36px; padding: 2px 4px 2px 2px; } .custom-chip-preview, .custom-editor-chip { width: 30px; height: 30px; } .custom-chip-pen { width: 22px; height: 30px; } .roulette-custom-editor { height: 36px; padding-block: 2px; } .roulette-custom-editor button { height: 30px; padding-inline: 8px; } }
+@media (max-width: 480px) { .roulette-custom-chip { height: 36px; padding: 2px 4px 2px 2px; } .custom-chip-preview, .custom-editor-chip { width: 30px; height: 30px; } .custom-chip-pen { width: 22px; height: 30px; } .roulette-custom-editor { left: calc(100% + 6px); height: 36px; width: min(290px,68vw); padding-block: 2px; } .roulette-custom-editor button { height: 30px; padding-inline: 8px; } }
+
+@media (max-width: 480px) {
+  .roulette-chip-row.custom-chip-open { flex-wrap: wrap; }
+  .roulette-chip-row.custom-chip-open .roulette-chip-options { flex: 1 1 100%; justify-content: flex-start; overflow: visible; }
+  .roulette-chip-row.custom-chip-open .roulette-custom-chip { flex: 0 0 auto; margin: 4px 0 0; }
+  .roulette-chip-row.custom-chip-open .roulette-custom-editor { left: calc(100% + 6px); width: min(290px,68vw); }
+}
