@@ -32,7 +32,14 @@ export function CoinFlip({ credits, locked, startRound, finishRound, active }) {
     }, reduced ? 30 : 1900);
   };
 
-  return <div className="coinflip-game">
+  return <div className="coinflip-game game-side-layout">
+    <div className="game-controls side-control-panel coin-controls">
+      <div className="game-panel-heading"><span>COIN FLIP</span><h2>Call the side</h2><p>A clean toss, one simple call.</p></div>
+      <label className="stake-field"><span>Play amount</span><div className="stake-input-wrap"><input aria-label="Coin Flip bet" type="number" min="10" step="1" value={stakeText} onChange={(event) => setStakeText(event.target.value)} disabled={isLocked} /><span>CR</span></div></label>
+      <div className="coin-side-picker" role="group" aria-label="Choose heads or tails">{['heads','tails'].map((pick) => <button key={pick} type="button" disabled={isLocked} className={side === pick ? 'selected' : ''} onClick={() => { setSide(pick); const angle = pick === 'tails' ? 180 : 0; rotationRef.current += (angle - ((rotationRef.current % 360) + 360) % 360 + 360) % 360; setRotation(rotationRef.current); }} aria-pressed={side === pick}><span className={'coin-choice-icon ' + pick}>{pick === 'heads' ? <Crown size={19} /> : <Sparkles size={19} />}</span>{pick === 'heads' ? 'Heads' : 'Tails'}</button>)}</div>
+      <Button variant="primary" onClick={flip} disabled={isLocked || !Number.isFinite(stake) || stake < 10 || stake > credits}>{flipping ? 'Flipping…' : 'Flip'}</Button>
+    </div>
+    <div className="coin-scene game-scene-panel">
     <div className="coin-stage">
       <motion.div className="coin-shadow" animate={{ scale: flipping ? [.85,.55,.85] : 1, opacity: flipping ? [.25,.1,.25] : .25 }} transition={{ duration: reduced ? 0 : 1.8 }} />
       <motion.div className="coin-object" animate={{ rotateY: rotation, y: flipping && !reduced ? [0,-75,0] : 0 }} transition={{ duration: reduced ? 0 : 1.8, ease: [.2,.72,.25,1] }} role="img" aria-label="Heads and tails coin">
@@ -40,10 +47,6 @@ export function CoinFlip({ credits, locked, startRound, finishRound, active }) {
         <div className="coin-face coin-tails"><div className="coin-inner"><Sparkles strokeWidth={1.35} /><b>TAILS</b></div></div>
       </motion.div>
     </div>
-    <div className="coin-side-picker" role="group" aria-label="Choose heads or tails">{['heads','tails'].map((pick) => <button key={pick} type="button" disabled={isLocked} className={side === pick ? 'selected' : ''} onClick={() => { setSide(pick); const angle = pick === 'tails' ? 180 : 0; rotationRef.current += (angle - ((rotationRef.current % 360) + 360) % 360 + 360) % 360; setRotation(rotationRef.current); }} aria-pressed={side === pick}>{pick === 'heads' ? 'Heads' : 'Tails'}</button>)}</div>
-    <div className="game-controls">
-      <label className="stake-field"><span>Bet</span><div className="stake-input-wrap"><input aria-label="Coin Flip bet" type="number" min="10" step="1" value={stakeText} onChange={(event) => setStakeText(event.target.value)} disabled={isLocked} /><span>CR</span></div></label>
-      <Button variant="primary" onClick={flip} disabled={isLocked || !Number.isFinite(stake) || stake < 10 || stake > credits}>{flipping ? 'Flipping…' : 'Flip'}</Button>
     </div>
   </div>;
 }

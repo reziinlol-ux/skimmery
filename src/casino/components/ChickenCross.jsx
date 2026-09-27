@@ -90,8 +90,21 @@ export function ChickenCross({ credits, locked, startRound, finishRound, gameAct
     finish(true);
   };
 
-  return <div className="chicken-game">
-    <div ref={roadViewportRef} className={'road-viewport' + (active ? '' : ' road-paused')}>
+  return <div className="chicken-game game-side-layout">
+    <div className="game-controls side-control-panel chicken-controls">
+      <div className="game-panel-heading"><span>CHICKEN CROSS</span><h2>One lane at a time</h2><p>Cross carefully, then cash out.</p></div>
+      <div className="cross-difficulty-wrap" ref={difficultyRef}>
+        <button type="button" className="cross-difficulty-trigger" aria-label={`Difficulty: ${CROSS_DIFFICULTIES[difficulty].label}`} aria-expanded={difficultyOpen} aria-haspopup="listbox" disabled={phase === 'playing' || busy || locked} onClick={() => setDifficultyOpen((open) => !open)}>
+          <span><small>Difficulty</small><strong>{CROSS_DIFFICULTIES[difficulty].label}</strong></span><ChevronUp size={16} />
+        </button>
+        {difficultyOpen && <div className="cross-difficulty-menu" role="listbox" aria-label="Choose Chicken Cross difficulty">{Object.entries(CROSS_DIFFICULTIES).map(([key, option]) => <button key={key} type="button" role="option" aria-selected={difficulty === key} className={difficulty === key ? 'selected' : ''} disabled={phase === 'playing' || busy || locked} onClick={() => { setDifficulty(key); setDifficultyOpen(false); }}><span>{option.label}</span></button>)}</div>}
+      </div>
+      <label className="stake-field"><span>Play amount</span><div className="stake-input-wrap"><input aria-label="Chicken Cross bet" type="number" min="10" step="1" value={stakeText} onChange={(event) => setStakeText(event.target.value)} disabled={locked || busy} /><span>CR</span></div></label>
+      {phase === 'playing' ? <><Button variant="secondary" onClick={cashout} disabled={busy || !steps}>Cash out <span>{formatCredits(currentPayout)} CR</span></Button><Button variant="primary" onClick={cross} disabled={busy}>Cross <ArrowRight size={17} /></Button></> : <Button variant="primary" onClick={start} disabled={locked || busy || !Number.isFinite(stake) || stake < 10 || stake > credits}>Bet</Button>}
+      <span className="cross-current-multiplier">{crossMultiplier(phase === 'playing' ? roundDifficulty.current : difficulty, steps).toFixed(2)}×</span>
+    </div>
+    <div ref={roadViewportRef} className={'road-viewport game-scene-panel' + (active ? '' : ' road-paused')}>
+      <div className="road-scene-sky" aria-hidden="true"><i /><i /><i /></div>
       <motion.div className="road-world" initial={false}>
         <div className="road-pavement"><div className="pavement-bricks" /><div className="road-lamp"><i /><b /></div><div className="road-tree"><i /><i /><i /></div><div className="road-curb" /></div>
         {Array.from({ length: CROSS_STEPS }, (_, index) => {
@@ -105,17 +118,6 @@ export function ChickenCross({ credits, locked, startRound, finishRound, gameAct
         })}
         <motion.div className={'road-chicken' + (phase === 'busted' ? ' dead' : '')} initial={false} animate={{ x: visualStep * 150, y: busy && !reduced ? [0,-16,0] : 0, opacity: phase === 'busted' ? 0 : 1, scaleY: 1 }} transition={{ x: { duration: reduced ? 0 : .34, ease: [.25,.8,.2,1] }, y: { duration: reduced ? 0 : .34 }, opacity: { duration: phase === 'busted' ? 0 : .18 }, scaleY: { duration: .24 } }}><Chicken /></motion.div>
       </motion.div>
-    </div>
-    <div className="game-controls chicken-controls">
-      <div className="cross-difficulty-wrap" ref={difficultyRef}>
-        <button type="button" className="cross-difficulty-trigger" aria-label={`Difficulty: ${CROSS_DIFFICULTIES[difficulty].label}`} aria-expanded={difficultyOpen} aria-haspopup="listbox" disabled={phase === 'playing' || busy || locked} onClick={() => setDifficultyOpen((open) => !open)}>
-          <span><small>Difficulty</small><strong>{CROSS_DIFFICULTIES[difficulty].label}</strong></span><ChevronUp size={16} />
-        </button>
-        {difficultyOpen && <div className="cross-difficulty-menu" role="listbox" aria-label="Choose Chicken Cross difficulty">{Object.entries(CROSS_DIFFICULTIES).map(([key, option]) => <button key={key} type="button" role="option" aria-selected={difficulty === key} className={difficulty === key ? 'selected' : ''} disabled={phase === 'playing' || busy || locked} onClick={() => { setDifficulty(key); setDifficultyOpen(false); }}><span>{option.label}</span></button>)}</div>}
-      </div>
-      <label className="stake-field"><span>Bet</span><div className="stake-input-wrap"><input aria-label="Chicken Cross bet" type="number" min="10" step="1" value={stakeText} onChange={(event) => setStakeText(event.target.value)} disabled={locked || busy} /><span>CR</span></div></label>
-      {phase === 'playing' ? <><Button variant="secondary" onClick={cashout} disabled={busy || !steps}>Cash out <span>{formatCredits(currentPayout)} CR</span></Button><Button variant="primary" onClick={cross} disabled={busy}>Cross <ArrowRight size={17} /></Button></> : <Button variant="primary" onClick={start} disabled={locked || busy || !Number.isFinite(stake) || stake < 10 || stake > credits}>Bet</Button>}
-      <span className="cross-current-multiplier">{crossMultiplier(phase === 'playing' ? roundDifficulty.current : difficulty, steps).toFixed(2)}×</span>
     </div>
   </div>;
 }

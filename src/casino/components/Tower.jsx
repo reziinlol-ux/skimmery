@@ -63,7 +63,15 @@ export function Tower({ credits, locked, startRound, finishRound, gameAction, ac
     finish(true);
   };
 
-  return <div className="tower-game">
+  return <div className="tower-game game-side-layout">
+    <div className="game-controls side-control-panel tower-controls">
+      <div className="game-panel-heading"><span>TOWER</span><h2>Climb for more</h2><p>Pick safe tiles, then lock in.</p></div>
+      <div className="difficulty-picker" role="group" aria-label="Difficulty">{Object.keys(TOWER_DIFFICULTIES).map((key) => <button key={key} type="button" className={difficulty === key ? 'selected' : ''} aria-pressed={difficulty === key} disabled={locked || busy} onClick={() => { setDifficulty(key); setFloors(null); setCleared(0); setPhase('ready'); }}>{TOWER_DIFFICULTIES[key].label}</button>)}</div>
+      <label className="stake-field"><span>Play amount</span><div className="stake-input-wrap"><input aria-label="Tower bet" type="number" min="10" step="1" value={stakeText} onChange={(event) => setStakeText(event.target.value)} disabled={locked || busy} /><span>CR</span></div></label>
+      {phase === 'playing' ? <Button variant="primary" onClick={cashout} disabled={busy || !cleared}>Cash out <span>{formatCredits(payout)} CR</span></Button> : <Button variant="primary" onClick={start} disabled={locked || busy || !Number.isFinite(stake) || stake < 10 || stake > credits}>Bet</Button>}
+      {phase === 'busted' && <span className="tower-round-status lost" role="status">Lost</span>}{phase === 'cashed' && <span className="tower-round-status won" role="status">Won</span>}
+    </div>
+    <div className="tower-scene game-scene-panel">
     <div className="tower-scene">
       <div className="tower-masonry" aria-hidden="true" />
       <div className="tower-grid" aria-label="Tower tiles">{Array.from({ length: TOWER_FLOORS }, (_, row) => {
@@ -81,12 +89,6 @@ export function Tower({ credits, locked, startRound, finishRound, gameAction, ac
           </motion.button>;
         })}</div>;
       })}</div>
-    </div>
-    <div className="game-controls tower-controls">
-      <div className="difficulty-picker" role="group" aria-label="Difficulty">{Object.keys(TOWER_DIFFICULTIES).map((key) => <button key={key} type="button" className={difficulty === key ? 'selected' : ''} aria-pressed={difficulty === key} disabled={locked || busy} onClick={() => { setDifficulty(key); setFloors(null); setCleared(0); setPhase('ready'); }}>{TOWER_DIFFICULTIES[key].label}</button>)}</div>
-      <label className="stake-field"><span>Bet</span><div className="stake-input-wrap"><input aria-label="Tower bet" type="number" min="10" step="1" value={stakeText} onChange={(event) => setStakeText(event.target.value)} disabled={locked || busy} /><span>CR</span></div></label>
-      {phase === 'playing' ? <Button variant="primary" onClick={cashout} disabled={busy || !cleared}>Cash out <span>{formatCredits(payout)} CR</span></Button> : <Button variant="primary" onClick={start} disabled={locked || busy || !Number.isFinite(stake) || stake < 10 || stake > credits}>Bet</Button>}
-      {phase === 'busted' && <span className="tower-round-status lost" role="status">Lost</span>}{phase === 'cashed' && <span className="tower-round-status won" role="status">Won</span>}
     </div>
   </div>;
 }
