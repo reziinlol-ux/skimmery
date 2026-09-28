@@ -4,11 +4,13 @@ import { Button } from './ui.jsx';
 import { DOUBLE_OUTCOMES, doublePayout, spinDouble } from '../logic/double.js';
 import { casinoSound } from '../logic/sound.js';
 import { formatCredits } from '../logic/storage.js';
+import { GameModeHeader, AutoRollSettings } from './AutoRoll.jsx';
+import { useAutoRoll } from '../useAutoRoll.js';
 
 const LANDING_SLOT = 24;
 const TILE_STEP = 96;
 
-export function DoubleGame({ credits, locked, startRound, finishRound }) {
+export function DoubleGame({ credits, locked, startRound, finishRound, active }) {
   const [stakeText, setStakeText] = useState('10');
   const [pick, setPick] = useState('red');
   const [spinning, setSpinning] = useState(false);
@@ -21,6 +23,7 @@ export function DoubleGame({ credits, locked, startRound, finishRound }) {
   const timerRef = useRef(null);
   const busy = useRef(false);
   const reduced = useReducedMotion();
+  const auto = useAutoRoll({ credits, active });
   const stake = Number(stakeText);
   const isLocked = locked || spinning;
 
@@ -33,11 +36,12 @@ export function DoubleGame({ credits, locked, startRound, finishRound }) {
   }, []);
   useEffect(() => () => window.clearTimeout(timerRef.current), []);
 
-  const play = async () => {
-    if (busy.current || isLocked || !Number.isSafeInteger(stake) || stake < 10 || stake > credits) return;
+  const play = async (autoBet = null) => {
+    const bet = autoBet ?? stake;
+    if (busy.current || isLocked || !Number.isSafeInteger(bet) || bet < 10 || bet > credits) return;
     busy.current = true;
-    const round = await startRound(stake, 'double', { pick });
-    if (!round) { busy.current = false; return; }
+    const round = await startRound(bet, 'double', { pick });
+    if (!round) { busy.current = false; if (autoBet !== null) auto.stop(); return; }
     const outcome = round.demo ? spinDouble() : round.outcome;
     const next = Array.from({ length: 29 }, spinDouble);
     next[LANDING_SLOT] = outcome;
@@ -50,20 +54,25 @@ export function DoubleGame({ credits, locked, startRound, finishRound }) {
     timerRef.current = window.setTimeout(() => {
       setSpinning(false);
       setLastResult(outcome);
-      const payout = doublePayout(stake, pick, outcome);
+      const payout = doublePayout(bet, pick, outcome);
       const won = payout > 0;
       casinoSound(won ? 'win' : 'loss');
-      finishRound({ game: 'double', summary: outcome.label, stake, net: payout - stake, won, payout, pick, outcome: outcome.key }, payout);
+      finishRound({ game: 'double', summary: outcome.label, stake: bet, net: payout - bet, won, payout, pick, outcome: outcome.key }, payout);
+      auto.finish(payout - bet);
       busy.current = false;
     }, reduced ? 30 : 5600);
   };
+  const playRef = useRef(play);
+  playRef.current = play;
+  const startAuto = () => auto.start(stakeText, setStakeText, (amount) => playRef.current(amount));
 
   return <div className="double-game game-side-layout">
     <section className="game-controls side-control-panel double-controls" aria-label="Double controls">
-      <div className="game-panel-heading"><span>DOUBLE</span><h2>Pick your color</h2><p>One spin. Four multipliers.</p></div>
-      <label className="stake-field"><span>Play amount</span><div className="stake-input-wrap"><input aria-label="Double bet" type="number" min="10" step="1" value={stakeText} onChange={(event) => setStakeText(event.target.value)} disabled={isLocked} /><span>CR</span></div></label>
-      <div className="double-picks" role="group" aria-label="Choose a Double outcome">{DOUBLE_OUTCOMES.map((option) => <button key={option.key} type="button" className={'double-pick double-' + option.key + (pick === option.key ? ' selected' : '')} disabled={isLocked} aria-pressed={pick === option.key} onClick={() => setPick(option.key)}><span className="double-pick-dot" /><strong>{option.label}</strong></button>)}</div>
-      <Button variant="primary" className="game-action-button" onClick={play} disabled={isLocked || !Number.isSafeInteger(stake) || stake < 10 || stake > credits}>{spinning ? 'Rolling…' : 'Place bet'}</Button>
+      <GameModeHeader label="DOUBLE" mode={auto.mode} onChange={auto.setMode} disabled={isLocked || auto.running} />
+      <label className="stake-field"><span>{auto.mode === 'auto' ? 'Bet amount' : 'Play amount'}</span><div className="stake-input-wrap"><input aria-label="Double bet" type="number" min="10" step="1" value={stakeText} onChange={(event) => setStakeText(event.target.value)} disabled={isLocked || auto.running} /><span>CR</span></div></label>
+      {auto.mode === 'auto' && <AutoRollSettings auto={auto} onStart={startAuto} disabled={auto.running} />}
+      <div className="double-picks" role="group" aria-label="Choose a Double outcome">{DOUBLE_OUTCOMES.map((option) => <button key={option.key} type="button" className={'double-pick double-' + option.key + (pick === option.key ? ' selected' : '')} disabled={isLocked || auto.running} aria-pressed={pick === option.key} onClick={() => setPick(option.key)}><span className="double-pick-dot" /><strong>{option.label}</strong></button>)}</div>
+      {auto.mode === 'manual' && <Button variant="primary" className="game-action-button" onClick={() => play()} disabled={isLocked || !Number.isSafeInteger(stake) || stake < 10 || stake > credits}>{spinning ? 'Rolling…' : 'Place bet'}</Button>}
       <div className="double-round-status" aria-live="polite">{lastResult ? lastResult.key === pick ? `Won ${formatCredits(doublePayout(stake, pick, lastResult))} credits` : `${lastResult.label} landed` : 'Choose an outcome to play'}</div>
     </section>
     <section className="double-board game-scene-panel" aria-label="Double reel">

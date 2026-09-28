@@ -5,3 +5,6 @@ casino-dist/
 .env.*
 !.env.example
 npm-debug.log*
+# Local restore snapshots are kept outside the source repository
+_snapshots/
+*.gtbackup

@@ -4,6 +4,8 @@ import { Crown, Sparkles } from 'lucide-react';
 import { Button } from './ui.jsx';
 import { flipCoin, settleCoinFlip } from '../logic/coinflip.js';
 import { casinoSound } from '../logic/sound.js';
+import { GameModeHeader, AutoRollSettings } from './AutoRoll.jsx';
+import { useAutoRoll } from '../useAutoRoll.js';
 
 export function CoinFlip({ credits, locked, startRound, finishRound, active }) {
   const [side, setSide] = useState('heads');
@@ -13,31 +15,38 @@ export function CoinFlip({ credits, locked, startRound, finishRound, active }) {
   const rotationRef = useRef(0);
   const busy = useRef(false);
   const reduced = useReducedMotion();
+  const auto = useAutoRoll({ credits, active });
   const stake = Number(stakeText), isLocked = locked || flipping;
 
   useEffect(() => { if (!active && !busy.current) { setSide('heads'); setRotation(0); rotationRef.current = 0; } }, [active, flipping]);
 
-  const flip = async () => {
-    if (busy.current || isLocked || !Number.isFinite(stake) || stake < 10 || stake > credits) return;
+  const flip = async (autoBet = null) => {
+    const bet = autoBet ?? stake;
+    if (busy.current || isLocked || !Number.isFinite(bet) || bet < 10 || bet > credits) return;
     busy.current = true;
-    const round = await startRound(stake, 'coin-flip', { side });
-    if (!round) { busy.current = false; return; }
-    const outcome = round.demo ? flipCoin() : round.outcome, settlement = settleCoinFlip(side, outcome, stake);
+    const round = await startRound(bet, 'coin-flip', { side });
+    if (!round) { busy.current = false; if (autoBet !== null) auto.stop(); return; }
+    const outcome = round.demo ? flipCoin() : round.outcome, settlement = settleCoinFlip(side, outcome, bet);
     const desired = outcome === 'tails' ? 180 : 0;
     rotationRef.current += 360 * 7 + ((desired - rotationRef.current % 360 + 360) % 360);
     setFlipping(true); setRotation(rotationRef.current); casinoSound('spin');
     window.setTimeout(() => {
       setFlipping(false); busy.current = false; casinoSound(settlement.won ? 'win' : 'loss');
-      finishRound({ game: 'coin-flip', summary: outcome, stake, net: settlement.net, won: settlement.won, payout: settlement.returned, choice: side, outcome }, settlement.returned);
+      finishRound({ game: 'coin-flip', summary: outcome, stake: bet, net: settlement.net, won: settlement.won, payout: settlement.returned, choice: side, outcome }, settlement.returned);
+      auto.finish(settlement.net);
     }, reduced ? 30 : 1900);
   };
+  const flipRef = useRef(flip);
+  flipRef.current = flip;
+  const startAuto = () => auto.start(stakeText, setStakeText, (amount) => flipRef.current(amount));
 
   return <div className="coinflip-game game-side-layout">
     <div className="game-controls side-control-panel coin-controls">
-      <div className="game-panel-heading"><span>COIN FLIP</span><h2>Call the side</h2><p>A clean toss, one simple call.</p></div>
-      <label className="stake-field"><span>Play amount</span><div className="stake-input-wrap"><input aria-label="Coin Flip bet" type="number" min="10" step="1" value={stakeText} onChange={(event) => setStakeText(event.target.value)} disabled={isLocked} /><span>CR</span></div></label>
-      <div className="coin-side-picker" role="group" aria-label="Choose heads or tails">{['heads','tails'].map((pick) => <button key={pick} type="button" disabled={isLocked} className={side === pick ? 'selected' : ''} onClick={() => { setSide(pick); const angle = pick === 'tails' ? 180 : 0; rotationRef.current += (angle - ((rotationRef.current % 360) + 360) % 360 + 360) % 360; setRotation(rotationRef.current); }} aria-pressed={side === pick}><span className={'coin-choice-icon ' + pick}>{pick === 'heads' ? <Crown size={19} /> : <Sparkles size={19} />}</span>{pick === 'heads' ? 'Heads' : 'Tails'}</button>)}</div>
-      <Button variant="primary" onClick={flip} disabled={isLocked || !Number.isFinite(stake) || stake < 10 || stake > credits}>{flipping ? 'Flipping…' : 'Flip'}</Button>
+      <GameModeHeader label="COIN FLIP" mode={auto.mode} onChange={auto.setMode} disabled={isLocked || auto.running} />
+      <label className="stake-field"><span>{auto.mode === 'auto' ? 'Bet amount' : 'Play amount'}</span><div className="stake-input-wrap"><input aria-label="Coin Flip bet" type="number" min="10" step="1" value={stakeText} onChange={(event) => setStakeText(event.target.value)} disabled={isLocked || auto.running} /><span>CR</span></div></label>
+      {auto.mode === 'auto' && <AutoRollSettings auto={auto} onStart={startAuto} disabled={auto.running} />}
+      <div className="coin-side-picker" role="group" aria-label="Choose heads or tails">{['heads','tails'].map((pick) => <button key={pick} type="button" disabled={isLocked || auto.running} className={side === pick ? 'selected' : ''} onClick={() => { setSide(pick); const angle = pick === 'tails' ? 180 : 0; rotationRef.current += (angle - ((rotationRef.current % 360) + 360) % 360 + 360) % 360; setRotation(rotationRef.current); }} aria-pressed={side === pick}><span className={'coin-choice-icon ' + pick}>{pick === 'heads' ? <Crown size={19} /> : <Sparkles size={19} />}</span>{pick === 'heads' ? 'Heads' : 'Tails'}</button>)}</div>
+      {auto.mode === 'manual' && <Button variant="primary" onClick={() => flip()} disabled={isLocked || !Number.isFinite(stake) || stake < 10 || stake > credits}>{flipping ? 'Flipping…' : 'Flip'}</Button>}
     </div>
     <div className="coin-scene game-scene-panel">
     <div className="coin-stage">

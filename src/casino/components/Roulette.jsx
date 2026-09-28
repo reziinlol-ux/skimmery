@@ -6,6 +6,8 @@ import { RouletteBall } from './RouletteBall.jsx';
 import { RED_NUMBERS, WHEEL_ORDER, betWins, netOddsForBet, rouletteGroups, rouletteOutcomeDetails, settleRoulette, spinRoulette } from '../logic/roulette.js';
 import { casinoSound } from '../logic/sound.js';
 import { formatCredits } from '../logic/storage.js';
+import { GameModeHeader, AutoRollSettings } from './AutoRoll.jsx';
+import { useAutoRoll } from '../useAutoRoll.js';
 
 const chipColor = (amount) => amount >= 500 ? '#a68548' : amount >= 200 ? '#8065ab' : amount >= 100 ? '#303136' : amount >= 50 ? '#46836e' : amount >= 25 ? '#a64d55' : '#3a73aa';
 function ChipArtwork({ value, color }) {
@@ -21,6 +23,16 @@ function ChipArtwork({ value, color }) {
 
 const chipSizes = [10, 25, 50, 100, 200, 500];
 const numberBet = (value) => ({ key: 'number-' + value, label: String(value), type: 'number', value, count: 1 });
+const scaleRouletteBets = (bets, amount) => {
+  const total = bets.reduce((sum, bet) => sum + bet.amount, 0);
+  if (!total || !Number.isSafeInteger(amount) || amount < 10) return [];
+  const shares = bets.map((bet) => amount * bet.amount / total);
+  const scaled = shares.map(Math.floor);
+  let remainder = amount - scaled.reduce((sum, value) => sum + value, 0);
+  const order = shares.map((share, index) => ({ index, fraction: share - scaled[index] })).sort((a, b) => b.fraction - a.fraction);
+  for (let index = 0; index < remainder; index += 1) scaled[order[index % order.length].index] += 1;
+  return bets.map((bet, index) => ({ ...bet, amount: scaled[index] })).filter((bet) => bet.amount > 0);
+};
 const pocketClass = (value) => value === 0 ? 'green' : RED_NUMBERS.has(value) ? 'red' : 'black';
 const step = 360 / 37;
 const point = (radius, angle) => [200 + radius * Math.sin(angle * Math.PI / 180), 200 - radius * Math.cos(angle * Math.PI / 180)];
@@ -54,8 +66,9 @@ function Wheel({ rotation, ballRotation, ballRun, spinning, reduced }) {
   </div>;
 }
 
-export function Roulette({ credits, locked, startRound, finishRound }) {
+export function Roulette({ credits, locked, startRound, finishRound, active = true }) {
   const [bets, setBets] = useState([]);
+  const [stakeText, setStakeText] = useState('10');
   const [chip, setChip] = useState(10);
   const [customAmount, setCustomAmount] = useState(null);
   const [customSelected, setCustomSelected] = useState(false);
@@ -77,8 +90,9 @@ export function Roulette({ credits, locked, startRound, finishRound }) {
   const busy = useRef(false);
   const undoRef = useRef([]);
   const reduced = useReducedMotion();
+  const auto = useAutoRoll({ credits, active });
   const total = useMemo(() => bets.reduce((sum, bet) => sum + bet.amount, 0), [bets]);
-  const isLocked = locked || spinning;
+  const isLocked = locked || spinning || auto.running;
   const draftAmount = Number(customDraft);
   const validCustomAmount = /^\d+$/.test(customDraft) && Number.isSafeInteger(draftAmount) && draftAmount >= 10;
   useEffect(() => {
@@ -129,13 +143,16 @@ export function Roulette({ credits, locked, startRound, finishRound }) {
   };
   const undo = () => { if (!isLocked && undoRef.current.length) setBets(undoRef.current.pop()); };
   const clear = () => { if (!isLocked) { setBets([]); undoRef.current = []; } };
-  const play = async () => {
-    if (busy.current || isLocked || customEditing || total < 10) return;
+  const play = async (autoBet = null) => {
+    if (busy.current || locked || spinning || customEditing || total < 10) return;
     busy.current = true;
-    const round = await startRound(total, 'roulette', { bets });
-    if (!round) { busy.current = false; return; }
+    const amount = autoBet ?? total;
+    const activeBets = autoBet === null ? bets : scaleRouletteBets(bets, amount);
+    if (!activeBets.length || activeBets.some((bet) => !Number.isSafeInteger(bet.amount) || bet.amount <= 0)) { busy.current = false; if (autoBet !== null) auto.stop(); return; }
+    const round = await startRound(amount, 'roulette', { bets: activeBets });
+    if (!round) { busy.current = false; if (autoBet !== null) auto.stop(); return; }
     const outcome = round.demo ? spinRoulette() : round.outcome;
-    const settlement = settleRoulette(bets, outcome);
+    const settlement = settleRoulette(activeBets, outcome);
     const targetAngle = -((WHEEL_ORDER.indexOf(outcome) + .5) * step);
     const currentAngle = ((rotationRef.current % 360) + 360) % 360;
     rotationRef.current += 360 * 11 + ((targetAngle - currentAngle + 360) % 360);
@@ -146,10 +163,14 @@ export function Roulette({ credits, locked, startRound, finishRound }) {
     window.setTimeout(() => {
       setSpinning(false); setResult(outcome); undoRef.current = [];
       casinoSound(settlement.net > 0 ? 'win' : 'loss');
-      finishRound({ game: 'roulette', summary: String(outcome), stake: total, net: settlement.net, won: settlement.net > 0, payout: settlement.returned, outcome }, settlement.returned);
+      finishRound({ game: 'roulette', summary: String(outcome), stake: amount, net: settlement.net, won: settlement.net > 0, payout: settlement.returned, outcome }, settlement.returned);
+      auto.finish(settlement.net);
       busy.current = false;
     }, reduced ? 30 : 7500);
   };
+  const playRef = useRef(play);
+  playRef.current = play;
+  const startAuto = () => auto.start(stakeText, setStakeText, (amount) => playRef.current(amount));
   const amountFor = (key) => bets.find((bet) => bet.key === key)?.amount;
   const labelFor = (group) => group.type === 'column' ? '2:1' : group.type === 'dozen' ? ['1 to 12','13 to 24','25 to 36'][group.value - 1] : group.label;
   const placedChip = (key) => {
@@ -175,6 +196,7 @@ export function Roulette({ credits, locked, startRound, finishRound }) {
     <Wheel rotation={rotation} ballRotation={ballRotation} ballRun={ballRun} spinning={spinning} reduced={reduced} />
     {result !== null && <span className="sr-only" role="status">{result}: {rouletteOutcomeDetails(result).map((item) => item.label).join(', ')}</span>}
     <div className="roulette-betting">
+      <div className="roulette-mode-controls"><GameModeHeader label="ROULETTE" mode={auto.mode} onChange={auto.setMode} disabled={isLocked || customEditing} />{auto.mode === 'auto' && <><label className="stake-field roulette-auto-amount"><span>Bet amount</span><div className="stake-input-wrap"><input aria-label="Roulette auto bet amount" type="number" min="10" step="1" value={stakeText} onChange={(event) => setStakeText(event.target.value)} disabled={auto.running || locked} /><span>CR</span></div></label><AutoRollSettings auto={auto} onStart={startAuto} canStart={bets.length > 0} disabled={auto.running} /></>}</div>
       <div className="roulette-table-scroll"><div className="roulette-table" aria-label="Roulette betting table">
         <div className="roulette-zero">{numberButton(0)}</div>
         <div className="roulette-number-grid">{[3,2,1].flatMap((row) => Array.from({ length: 12 }, (_, col) => numberButton(col * 3 + row)))}</div>
@@ -207,7 +229,7 @@ export function Roulette({ credits, locked, startRound, finishRound }) {
         </AnimatePresence>
       </div>
       </div>
-      <Button ref={spinButtonRef} className="roulette-spin-button" variant="primary" onClick={play} disabled={isLocked || customEditing || total < 10 || total > credits}>{spinning ? 'Spinning…' : 'Spin'}</Button>
+      {auto.mode === 'manual' && <Button ref={spinButtonRef} className="roulette-spin-button" variant="primary" onClick={() => play()} disabled={isLocked || customEditing || total < 10 || total > credits}>{spinning ? 'Spinning…' : 'Spin'}</Button>}
     </div>
     </div>
   </div>;

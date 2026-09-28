@@ -6,6 +6,8 @@ import { Chicken, Car, Roadblock } from './GameArt.jsx';
 import { CROSS_STEPS, CROSS_DIFFICULTIES, crossSurvives, crossMultiplier, crossCashout } from '../logic/chicken.js';
 import { casinoSound } from '../logic/sound.js';
 import { formatCredits } from '../logic/storage.js';
+import { GameModeHeader, AutoRollSettings } from './AutoRoll.jsx';
+import { useAutoRoll } from '../useAutoRoll.js';
 
 const CAR_VARIANTS = ['compact', 'coupe', 'suv', 'van'];
 
@@ -24,6 +26,7 @@ export function ChickenCross({ credits, locked, startRound, finishRound, gameAct
   const roundStake = useRef(10);
   const roundDifficulty = useRef('easy');
   const reduced = useReducedMotion();
+  const auto = useAutoRoll({ credits, active });
   const stake = Number(stakeText);
   const currentPayout = crossCashout(roundStake.current, steps, roundDifficulty.current);
   const settledRound = phase === 'playing' || phase === 'busted' || phase === 'cashed';
@@ -69,6 +72,7 @@ export function ChickenCross({ credits, locked, startRound, finishRound, gameAct
     setPhase(won ? 'cashed' : 'busted'); busyRef.current = false; setBusy(false);
     casinoSound(won ? 'win' : 'loss');
     finishRound({ game: 'chicken-cross', summary: String(count), stake: roundStake.current, net: payout - roundStake.current, won, payout, steps: count }, payout);
+    auto.finish(payout - roundStake.current);
   };
   const cross = async () => {
     if (phase !== 'playing' || busyRef.current || steps >= CROSS_STEPS) return;
@@ -99,17 +103,29 @@ export function ChickenCross({ credits, locked, startRound, finishRound, gameAct
     finish(true);
   };
 
+  const startAuto = () => auto.start(stakeText, setStakeText, async (amount) => {
+    const round = await startRound(amount, 'chicken-cross', { difficulty });
+    if (!round) { auto.stop(); return; }
+    roundStake.current = amount;
+    roundDifficulty.current = difficulty;
+    setPhase('playing'); setSteps(0); setVisualStep(0); setHitLane(-1); setBusy(false);
+  });
+  useEffect(() => {
+    if (auto.running && auto.mode === 'auto' && phase === 'playing' && !busy && !busyRef.current) cross();
+  }, [auto.running, auto.mode, phase, busy, steps]);
+
   return <div className="chicken-game game-side-layout">
     <div className="game-controls side-control-panel chicken-controls">
-      <div className="game-panel-heading"><span>CHICKEN CROSS</span><h2>One lane at a time</h2><p>Cross carefully, then cash out.</p></div>
-      <label className="stake-field"><span>Play amount</span><div className="stake-input-wrap"><input aria-label="Chicken Cross bet" type="number" min="10" step="1" value={stakeText} onChange={(event) => setStakeText(event.target.value)} disabled={locked || busy || phase === 'playing'} /><span>CR</span></div></label>
+      <GameModeHeader label="CHICKEN CROSS" mode={auto.mode} onChange={auto.setMode} disabled={locked || busy || phase === 'playing' || auto.running} />
+      <label className="stake-field"><span>{auto.mode === 'auto' ? 'Bet amount' : 'Play amount'}</span><div className="stake-input-wrap"><input aria-label="Chicken Cross bet" type="number" min="10" step="1" value={stakeText} onChange={(event) => setStakeText(event.target.value)} disabled={locked || busy || phase === 'playing' || auto.running} /><span>CR</span></div></label>
+      {auto.mode === 'auto' && <AutoRollSettings auto={auto} onStart={startAuto} disabled={auto.running} />}
       <div className="cross-difficulty-wrap" ref={difficultyRef}>
         <button type="button" className="cross-difficulty-trigger" aria-label={`Difficulty: ${CROSS_DIFFICULTIES[difficulty].label}`} aria-expanded={difficultyOpen} aria-haspopup="listbox" disabled={phase === 'playing' || busy || locked} onClick={() => setDifficultyOpen((open) => !open)}>
           <span><small>Difficulty</small><strong>{CROSS_DIFFICULTIES[difficulty].label}</strong></span><ChevronUp size={16} />
         </button>
         {difficultyOpen && <div className="cross-difficulty-menu" role="listbox" aria-label="Choose Chicken Cross difficulty">{Object.entries(CROSS_DIFFICULTIES).map(([key, option]) => <button key={key} type="button" role="option" aria-selected={difficulty === key} className={difficulty === key ? 'selected' : ''} disabled={phase === 'playing' || busy || locked} onClick={() => { setDifficulty(key); setDifficultyOpen(false); }}><span>{option.label}</span></button>)}</div>}
       </div>
-      {phase === 'playing' ? <><Button variant="secondary" onClick={cashout} disabled={busy || !steps}>Cash out <span>{formatCredits(currentPayout)} CR</span></Button><Button variant="primary" onClick={cross} disabled={busy}>Cross <ArrowRight size={17} /></Button></> : <Button variant="primary" onClick={start} disabled={locked || busy || !Number.isFinite(stake) || stake < 10 || stake > credits}>Bet</Button>}
+      {phase === 'playing' ? <><Button variant="secondary" onClick={cashout} disabled={busy || auto.running || !steps}>Cash out <span>{formatCredits(currentPayout)} CR</span></Button>{!(auto.running && auto.mode === 'auto') && <Button variant="primary" onClick={cross} disabled={busy}>Cross <ArrowRight size={17} /></Button>}</> : auto.mode === 'manual' ? <Button variant="primary" onClick={start} disabled={locked || busy || !Number.isFinite(stake) || stake < 10 || stake > credits}>Bet</Button> : null}
       <div className="cross-gain-panel" aria-live="polite">
         <div className="cross-gain-row"><span>Current net gain</span><div><strong>{formatCredits(currentGain)} CR</strong><b>{currentMultiplier.toFixed(2)}×</b></div></div>
         <div className="cross-gain-divider" />

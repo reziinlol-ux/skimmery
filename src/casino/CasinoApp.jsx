@@ -147,12 +147,12 @@ function CasinoApp() {
     {walletError && <p className="casino-wallet-error" role="alert">{walletError}</p>}
     {savedRound && <div className="casino-saved-round"><span>Your {games[savedRound.game]} round is saved.</span><Button variant="primary" onClick={()=>resolveSavedRound('cashout')} disabled={!(savedRound.wins || savedRound.steps || savedRound.cleared || (savedRound.game === 'crash' && savedRound.multiplier > 1))}>Cash out saved round</Button><Button onClick={()=>resolveSavedRound('abandon')}>End round</Button></div>}
     <div className="casino-play-area">
-      <section className={activeGame === 'roulette' ? 'game-view' : 'hidden'} aria-hidden={activeGame !== 'roulette'}><Roulette {...props} /></section>
+      <section className={activeGame === 'roulette' ? 'game-view' : 'hidden'} aria-hidden={activeGame !== 'roulette'}><Roulette {...props} active={activeGame === 'roulette'} /></section>
       <section className={activeGame === 'chicken-cross' ? 'game-view' : 'hidden'} aria-hidden={activeGame !== 'chicken-cross'}><ChickenCross {...props} active={activeGame === 'chicken-cross'} /></section>
       <section className={activeGame === 'tower' ? 'game-view' : 'hidden'} aria-hidden={activeGame !== 'tower'}><Tower {...props} active={activeGame === 'tower'} /></section>
       <section className={activeGame === 'coin-flip' ? 'game-view' : 'hidden'} aria-hidden={activeGame !== 'coin-flip'}><CoinFlip {...props} active={activeGame === 'coin-flip'} /></section>
-      <section className={activeGame === 'wheel' ? 'game-view' : 'hidden'} aria-hidden={activeGame !== 'wheel'}><WheelGame {...props} /></section>
-      <section className={activeGame === 'double' ? 'game-view' : 'hidden'} aria-hidden={activeGame !== 'double'}><DoubleGame {...props} /></section>
+      <section className={activeGame === 'wheel' ? 'game-view' : 'hidden'} aria-hidden={activeGame !== 'wheel'}><WheelGame {...props} active={activeGame === 'wheel'} /></section>
+      <section className={activeGame === 'double' ? 'game-view' : 'hidden'} aria-hidden={activeGame !== 'double'}><DoubleGame {...props} active={activeGame === 'double'} /></section>
       <section className={activeGame === 'crash' ? 'game-view' : 'hidden'} aria-hidden={activeGame !== 'crash'}><CrashGame {...props} active={activeGame === 'crash'} /></section>
       <WinPopup win={win?.game === activeGame ? win : null} />
     </div>

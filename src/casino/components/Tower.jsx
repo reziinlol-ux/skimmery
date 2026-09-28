@@ -5,6 +5,8 @@ import { Gem } from './GameArt.jsx';
 import { createTower, revealTowerPick, TOWER_DIFFICULTIES, TOWER_FLOORS, towerCashout, towerMultiplier } from '../logic/tower.js';
 import { casinoSound } from '../logic/sound.js';
 import { formatCredits } from '../logic/storage.js';
+import { GameModeHeader, AutoRollSettings } from './AutoRoll.jsx';
+import { useAutoRoll } from '../useAutoRoll.js';
 
 export function Tower({ credits, locked, startRound, finishRound, gameAction, active }) {
   const [difficulty, setDifficulty] = useState('easy');
@@ -16,6 +18,7 @@ export function Tower({ credits, locked, startRound, finishRound, gameAction, ac
   const busyRef = useRef(false);
   const roundStake = useRef(10);
   const reduced = useReducedMotion();
+  const auto = useAutoRoll({ credits, active });
   const stake = Number(stakeText);
   const payout = towerCashout(roundStake.current, cleared, difficulty);
 
@@ -37,6 +40,7 @@ export function Tower({ credits, locked, startRound, finishRound, gameAction, ac
     setPhase(won ? 'cashed' : 'busted'); busyRef.current = false; setBusy(false);
     casinoSound(won ? 'win' : 'loss');
     finishRound({ game: 'tower', summary: String(steps), stake: roundStake.current, net: returned - roundStake.current, won, payout: returned, difficulty, floors: steps }, returned);
+    auto.finish(returned - roundStake.current);
   };
   const pick = async (floorIndex, tileIndex) => {
     if (phase !== 'playing' || busyRef.current || floorIndex !== cleared) return;
@@ -63,12 +67,23 @@ export function Tower({ credits, locked, startRound, finishRound, gameAction, ac
     finish(true);
   };
 
+  const startAuto = () => auto.start(stakeText, setStakeText, async (amount) => {
+    const round = await startRound(amount, 'tower', { difficulty });
+    if (!round) { auto.stop(); return; }
+    roundStake.current = amount;
+    setFloors(round.demo ? createTower(difficulty) : round.round.floors); setCleared(0); setPhase('playing'); setBusy(false);
+  });
+  useEffect(() => {
+    if (auto.running && auto.mode === 'auto' && phase === 'playing' && !busy && !busyRef.current) pick(cleared, Math.floor(Math.random() * 4));
+  }, [auto.running, auto.mode, phase, busy, cleared]);
+
   return <div className="tower-game game-side-layout">
     <div className="game-controls side-control-panel tower-controls">
-      <div className="game-panel-heading"><span>TOWER</span><h2>Climb for more</h2><p>Pick safe tiles, then lock in.</p></div>
-      <div className="difficulty-picker" role="group" aria-label="Difficulty">{Object.keys(TOWER_DIFFICULTIES).map((key) => <button key={key} type="button" className={difficulty === key ? 'selected' : ''} aria-pressed={difficulty === key} disabled={locked || busy} onClick={() => { setDifficulty(key); setFloors(null); setCleared(0); setPhase('ready'); }}>{TOWER_DIFFICULTIES[key].label}</button>)}</div>
-      <label className="stake-field"><span>Play amount</span><div className="stake-input-wrap"><input aria-label="Tower bet" type="number" min="10" step="1" value={stakeText} onChange={(event) => setStakeText(event.target.value)} disabled={locked || busy} /><span>CR</span></div></label>
-      {phase === 'playing' ? <Button variant="primary" onClick={cashout} disabled={busy || !cleared}>Cash out <span>{formatCredits(payout)} CR</span></Button> : <Button variant="primary" onClick={start} disabled={locked || busy || !Number.isFinite(stake) || stake < 10 || stake > credits}>Bet</Button>}
+      <GameModeHeader label="TOWER" mode={auto.mode} onChange={auto.setMode} disabled={locked || busy || phase === 'playing' || auto.running} />
+      <div className="difficulty-picker" role="group" aria-label="Difficulty">{Object.keys(TOWER_DIFFICULTIES).map((key) => <button key={key} type="button" className={difficulty === key ? 'selected' : ''} aria-pressed={difficulty === key} disabled={locked || busy || phase === 'playing' || auto.running} onClick={() => { setDifficulty(key); setFloors(null); setCleared(0); setPhase('ready'); }}>{TOWER_DIFFICULTIES[key].label}</button>)}</div>
+      <label className="stake-field"><span>{auto.mode === 'auto' ? 'Bet amount' : 'Play amount'}</span><div className="stake-input-wrap"><input aria-label="Tower bet" type="number" min="10" step="1" value={stakeText} onChange={(event) => setStakeText(event.target.value)} disabled={locked || busy || phase === 'playing' || auto.running} /><span>CR</span></div></label>
+      {auto.mode === 'auto' && <AutoRollSettings auto={auto} onStart={startAuto} disabled={auto.running} />}
+      {phase === 'playing' ? <Button variant="primary" onClick={cashout} disabled={busy || auto.running || !cleared}>Cash out <span>{formatCredits(payout)} CR</span></Button> : auto.mode === 'manual' ? <Button variant="primary" onClick={start} disabled={locked || busy || !Number.isFinite(stake) || stake < 10 || stake > credits}>Bet</Button> : null}
       {phase === 'busted' && <span className="tower-round-status lost" role="status">Lost</span>}{phase === 'cashed' && <span className="tower-round-status won" role="status">Won</span>}
     </div>
     <div className="tower-scene game-scene-panel">

@@ -404,7 +404,7 @@ body.roulette-game-active { height: 100dvh; overflow: hidden; }
 }
 
 /* Shared game layout: compact controls at the left, an illustrated play surface at the right. */
-.game-side-layout { display: grid; width: min(100%,1360px); grid-template-columns: minmax(248px,292px) minmax(0,1fr); align-items: stretch; gap: clamp(16px,2.2vw,30px); margin-inline: auto; }
+.game-side-layout { display: grid; width: min(100%,1360px); grid-template-columns: minmax(320px,360px) minmax(0,1fr); align-items: stretch; gap: clamp(16px,2.2vw,30px); margin-inline: auto; }
 .side-control-panel { display: flex; min-width: 0; width: 100%; max-width: none; flex-direction: column; align-items: stretch; align-self: start; gap: 15px; margin: 0; padding: 19px; border: 1px solid #ffffff12; border-radius: 14px; background: linear-gradient(155deg,#222a38,#1a202b 70%); box-shadow: 0 16px 42px #05091435; }
 .side-control-panel .stake-field { width: 100%; min-width: 0; gap: 7px; color: #d2dbea; font-size: 12px; }
 .side-control-panel .stake-field > span { color: #d6e2f5; font-size: 12px; font-weight: 600; }
@@ -499,7 +499,7 @@ body.roulette-game-active { height: 100dvh; overflow: hidden; }
 
 /* Wheel retains its game at the right with betting controls in the left rail. */
 .wheel-game { width: min(100%,1360px); }
-.wheel-game-layout { display: grid; grid-template-columns: minmax(248px,292px) minmax(0,1fr); align-items: center; gap: clamp(16px,2.2vw,30px); min-height: clamp(490px,calc(100dvh - 200px),680px); padding-block: 0; }
+.wheel-game-layout { display: grid; grid-template-columns: minmax(320px,360px) minmax(0,1fr); align-items: center; gap: clamp(16px,2.2vw,30px); min-height: clamp(490px,calc(100dvh - 200px),680px); padding-block: 0; }
 .wheel-controls { align-self: start; width: 100%; max-width: none; padding: 19px; border: 1px solid #ffffff12; border-radius: 14px; background: linear-gradient(155deg,#222a38,#1a202b 70%); box-shadow: 0 16px 42px #05091435; }
 .wheel-board { order: 0; gap: 20px; }
 .wheel-stage { width: min(100%,58vh,590px); }
@@ -548,9 +548,9 @@ body.roulette-game-active { height: 100dvh; overflow: hidden; }
 .crash-multiplier { z-index: 1; color: #60a9ff; font: 700 clamp(58px,10vw,112px)/1 "Space Grotesk",sans-serif; letter-spacing: -5px; font-variant-numeric: tabular-nums; text-shadow: 0 0 36px #438fff3e; }
 .crash-chart { position: absolute; z-index: 0; inset: 0; width: 100%; height: 100%; }
 .crash-fill { fill: url(#crash-fill); }.crash-line { fill: none; stroke: #4f9cff; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 8px #3d8fff9c); }
-.crash-dot { fill: #d7eaff; filter: drop-shadow(0 0 8px #48a0ff); }
+.crash-dot { position: absolute; z-index: 1; width: 12px; height: 12px; border-radius: 50%; transform: translate(-50%, -50%); background: #d7eaff; box-shadow: 0 0 8px #48a0ff; }
 .crash-board.crashed .crash-line { stroke: #ff6475; filter: drop-shadow(0 0 8px #ff647588); }.crash-board.cashed .crash-line { stroke: #8bc2ff; }
-.crash-board.crashed .crash-dot { fill: #ffe2e4; filter: drop-shadow(0 0 8px #ff6475); }
+.crash-board.crashed .crash-dot { background: #ffe2e4; box-shadow: 0 0 8px #ff6475; }
 
 @media (max-width: 760px) {
   .game-side-layout, .wheel-game-layout { grid-template-columns: minmax(0,1fr); gap: 14px; }
@@ -583,7 +583,7 @@ body.roulette-game-active { height: 100dvh; overflow: hidden; }
 .casino-scope * { background-image: none !important; }
 .casino-scope .side-control-panel,
 .casino-scope .wheel-controls,
-.casino-scope .roulette-betting { background-color: #2b2c2f !important; border-color: #3a3c40; border-radius: 9px; box-shadow: none; }
+.casino-scope .roulette-betting { background: #2b2c2f !important; border-color: #3a3c40; border-radius: 9px; box-shadow: none; }
 .casino-scope .side-control-panel .stake-input-wrap,
 .casino-scope .wheel-controls .stake-input-wrap { background-color: #1c1e21; border-color: #41444a; }
 .casino-scope .game-scene-panel,
@@ -679,6 +679,37 @@ body.roulette-game-active { height: 100dvh; overflow: hidden; }
 .casino-scope .crash-auto-field > span small { color: #92979f; font-size: 10px; font-weight: 500; }
 .casino-scope .crash-auto-hint { color: #92979f; font-size: 10px; line-height: 1.35; }
 .casino-scope .crash-auto-hint.invalid { color: #ff8b91; }
+.game-panel-heading-compact { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.game-mode-picker { display: inline-flex; flex: none; gap: 3px; padding: 3px; border: 1px solid #4a4a4a; border-radius: 9px; background: #242424; }
+.game-mode-picker button { min-height: 30px; padding: 0 11px; border: 0; border-radius: 6px; background: transparent; color: #aaa; font-size: 11px; font-weight: 650; transition: background-color .16s ease,color .16s ease; }
+.game-mode-picker button:hover:not(:disabled) { color: #f0f0f0; }
+.game-mode-picker button.selected { background: #454545; color: #fff; box-shadow: inset 0 1px 0 #ffffff13; }
+.game-mode-picker button:focus-visible { outline: 2px solid #929292; outline-offset: 2px; box-shadow: none; }
+.game-mode-picker button:disabled { cursor: default; opacity: .66; }
+.auto-roll-settings { display: grid; gap: 13px; width: 100%; padding: 0; border: 0; border-radius: 0; background: transparent; }
+.auto-roll-increases, .auto-roll-stops { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px 8px; }
+.auto-roll-setting { display: grid; min-width: 0; gap: 5px; margin: 0; color: #d0d0d0; font-size: 10px; font-weight: 600; }
+.auto-roll-input { display: flex; min-width: 0; height: 36px; align-items: center; gap: 4px; padding: 0 7px; border: 1px solid #414141; border-radius: 7px; background: #1c1e21; color: #aaa; font-size: 9px; white-space: nowrap; }
+.auto-roll-input:focus-within { border-color: #777; box-shadow: 0 0 0 2px #ffffff10; }
+.auto-roll-input input { width: 100%; min-width: 0; height: 100%; padding: 0; border: 0; outline: 0; background: transparent; color: #f5f8fc; font-size: 12px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.auto-roll-input input::placeholder { color: #718195; }
+.auto-roll-input input[type=number] { appearance: textfield; }
+.auto-roll-input input::-webkit-inner-spin-button, .auto-roll-input input::-webkit-outer-spin-button { appearance: none; margin: 0; }
+.auto-roll-stops .auto-roll-setting:last-child { grid-column: 1 / -1; }
+.auto-roll-error { color: #ff8b91; font-size: 10px; }
+.auto-roll-progress { color: #9eb8d7; font-size: 10px; font-variant-numeric: tabular-nums; }
+.auto-roll-action { width: 100%; min-height: 42px; border: 1px solid #6099df; border-radius: 7px; background: #3f80cb; color: #fff; font-size: 12px; font-weight: 700; transition: background-color .16s ease,transform .16s ease; }
+.auto-roll-action:hover:not(:disabled) { background: #4b8bd8; }
+.auto-roll-action:active:not(:disabled) { transform: translateY(1px); }
+.auto-roll-action:disabled { cursor: not-allowed; opacity: .56; }
+@media (max-width: 400px) {
+  .auto-roll-settings { gap: 11px; }
+  .auto-roll-input { padding-inline: 6px; font-size: 8px; }
+  .game-mode-picker button { min-height: 32px; padding-inline: 9px; }
+}
+@media (max-width: 900px) {
+  .game-side-layout, .wheel-game-layout { grid-template-columns: minmax(0,1fr); gap: 14px; }
+}
 @media (max-width: 760px) {
   .casino-scope .roulette-side-layout > .roulette-wheel-scene { height: min(39vh, 320px); min-height: 235px; }
   .casino-scope .roulette-side-layout .roulette-table { grid-template-columns: 30px minmax(0,1fr) 30px; grid-template-rows: repeat(3,30px) 28px 28px; }

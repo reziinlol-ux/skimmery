@@ -4,6 +4,8 @@ import { Button } from './ui.jsx';
 import { crashMultiplier, crashPayout, sampleCrashPoint } from '../logic/crash.js';
 import { casinoSound } from '../logic/sound.js';
 import { formatCredits } from '../logic/storage.js';
+import { GameModeHeader, AutoRollSettings } from './AutoRoll.jsx';
+import { useAutoRoll } from '../useAutoRoll.js';
 
 const multiplierText = (value) => `${Number(value || 1).toFixed(2)}×`;
 
@@ -28,6 +30,8 @@ export function CrashGame({ credits, locked, startRound, finishRound, gameAction
   const serverRoundActive = useRef(false);
   const lastTick = useRef(0);
   const activeRef = useRef(active);
+  const auto = useAutoRoll({ credits, active });
+  const roundAutoCashout = useRef(null);
   activeRef.current = active;
 
   useEffect(() => {
@@ -46,6 +50,7 @@ export function CrashGame({ credits, locked, startRound, finishRound, gameAction
     setResultText(won ? `${automatic ? 'Auto cashed out' : 'Cashed out'} at ${multiplierText(at)}` : `Crashed at ${multiplierText(at)}`);
     casinoSound(won ? 'win' : 'loss');
     finishRound({ game: 'crash', summary: won ? `${automatic ? 'Auto · ' : ''}${multiplierText(at)}` : `Crashed ${multiplierText(at)}`, stake: stakeRef.current, net: payout - stakeRef.current, won, payout, multiplier: at, autoCashout: automatic }, payout);
+    auto.finish(payout - stakeRef.current);
   };
 
   useEffect(() => {
@@ -59,7 +64,7 @@ export function CrashGame({ credits, locked, startRound, finishRound, gameAction
         const current = crashMultiplier(Date.now() - startTime.current);
         setElapsedMs(Date.now() - startTime.current);
         setMultiplier(current);
-        if (!serverRoundActive.current && autoCashout !== null && current >= autoCashout && autoCashout < crashAt.current) { settle(true, autoCashout, true); return; }
+        if (!serverRoundActive.current && roundAutoCashout.current !== null && current >= roundAutoCashout.current && roundAutoCashout.current < crashAt.current) { settle(true, roundAutoCashout.current, true); return; }
         if (!serverRoundActive.current && current >= crashAt.current) { settle(false, crashAt.current); return; }
         if (serverRoundActive.current && now - lastTick.current > 850 && !actionPending.current) {
           lastTick.current = now;
@@ -78,20 +83,29 @@ export function CrashGame({ credits, locked, startRound, finishRound, gameAction
     };
     frame = window.requestAnimationFrame(draw);
     return () => window.cancelAnimationFrame(frame);
-  }, [phase, locked, gameAction, active, autoCashout]);
+  }, [phase, locked, gameAction, active]);
 
-  const play = async () => {
-    if (locked || busy || phase === 'running' || !Number.isSafeInteger(stake) || stake < 10 || stake > credits || !autoCashoutValid) return;
+  const play = async (autoBet = null, target = autoCashout) => {
+    const bet = autoBet ?? stake;
+    if (locked || busy || phase === 'running' || !Number.isSafeInteger(bet) || bet < 10 || bet > credits || (target !== null && (!Number.isFinite(target) || target < 1.5 || target > 100))) return;
     setBusy(true); finished.current = false; actionPending.current = false;
-    const round = await startRound(stake, 'crash', { autoCashout });
-    if (!round) { setBusy(false); return; }
+    const round = await startRound(bet, 'crash', { autoCashout: target });
+    if (!round) { setBusy(false); if (autoBet !== null) auto.stop(); return; }
     serverRoundActive.current = !round.demo;
-    stakeRef.current = stake;
+    stakeRef.current = bet;
+    roundAutoCashout.current = target;
     startTime.current = round.demo ? Date.now() : Number(round.round?.startedAt) || Date.now();
     crashAt.current = round.demo ? sampleCrashPoint() : Number.POSITIVE_INFINITY;
     setMultiplier(1); setElapsedMs(0); setPlotKey((key) => key + 1); setPhase('running'); setResultText('In flight'); setBusy(false);
     lastTick.current = 0;
     casinoSound('spin');
+  };
+  const playRef = useRef(play);
+  playRef.current = play;
+  const startAuto = () => {
+    const target = autoCashout ?? 2;
+    if (autoCashout === null) setAutoCashoutText('2');
+    auto.start(stakeText, setStakeText, (amount) => playRef.current(amount, target));
   };
 
   const cashOut = async () => {
@@ -127,10 +141,11 @@ export function CrashGame({ credits, locked, startRound, finishRound, gameAction
 
   return <div className="crash-game game-side-layout">
     <section className="game-controls side-control-panel crash-controls" aria-label="Crash controls">
-      <div className="game-panel-heading"><span>CRASH</span><h2>Know when to leave</h2><p>Cash out before the multiplier drops.</p></div>
-      <label className="stake-field"><span>Play amount</span><div className="stake-input-wrap"><input aria-label="Crash bet" type="number" min="10" step="1" value={stakeText} onChange={(event) => setStakeText(event.target.value)} disabled={locked || busy || phase === 'running'} /><span>CR</span></div></label>
-      <label className="stake-field crash-auto-field"><span>Auto cashout <small>optional</small></span><div className="stake-input-wrap"><input aria-label="Crash auto cashout multiplier, minimum 1.5 times" type="number" min="1.5" max="100" step="0.1" value={autoCashoutText} onChange={(event) => setAutoCashoutText(event.target.value)} disabled={locked || busy || phase === 'running'} placeholder="1.50× minimum" /><span>×</span></div><small className={'crash-auto-hint' + (autoCashoutText && !autoCashoutValid ? ' invalid' : '')}>{autoCashoutText && !autoCashoutValid ? 'Enter a target from 1.50× to 100×.' : 'Leave blank to cash out manually.'}</small></label>
-      {phase === 'running' ? <Button variant="primary" className="game-action-button crash-cashout" onClick={cashOut} disabled={busy || finished.current}>Cash out · {formatCredits(crashPayout(stakeRef.current, multiplier))} CR</Button> : <Button variant="primary" className="game-action-button" onClick={play} disabled={locked || busy || !Number.isSafeInteger(stake) || stake < 10 || stake > credits || !autoCashoutValid}>{phase === 'crashed' || phase === 'cashed' ? 'Play again' : 'Start round'}</Button>}
+      <GameModeHeader label="CRASH" mode={auto.mode} onChange={auto.setMode} disabled={locked || busy || phase === 'running' || auto.running} />
+      <label className="stake-field"><span>{auto.mode === 'auto' ? 'Bet amount' : 'Play amount'}</span><div className="stake-input-wrap"><input aria-label="Crash bet" type="number" min="10" step="1" value={stakeText} onChange={(event) => setStakeText(event.target.value)} disabled={locked || busy || phase === 'running' || auto.running} /><span>CR</span></div></label>
+      {auto.mode === 'auto' && <AutoRollSettings auto={auto} onStart={startAuto} disabled={auto.running} />}
+      <label className="stake-field crash-auto-field"><span>Auto cashout</span><div className="stake-input-wrap"><input aria-label="Crash auto cashout multiplier, minimum 1.5 times" type="number" min="1.5" max="100" step="0.1" value={autoCashoutText} onChange={(event) => setAutoCashoutText(event.target.value)} disabled={locked || busy || phase === 'running' || auto.running} placeholder="1.50× minimum" /><span>×</span></div><small className={'crash-auto-hint' + (autoCashoutText && !autoCashoutValid ? ' invalid' : '')}>{autoCashoutText && !autoCashoutValid ? 'Enter a target from 1.50× to 100×.' : ''}</small></label>
+      {phase === 'running' ? <Button variant="primary" className="game-action-button crash-cashout" onClick={cashOut} disabled={busy || auto.running || finished.current}>Cash out · {formatCredits(crashPayout(stakeRef.current, multiplier))} CR</Button> : auto.mode === 'manual' ? <Button variant="primary" className="game-action-button" onClick={() => play()} disabled={locked || busy || !Number.isSafeInteger(stake) || stake < 10 || stake > credits || !autoCashoutValid}>{phase === 'crashed' || phase === 'cashed' ? 'Play again' : 'Start round'}</Button> : null}
       <div className={'crash-round-status ' + phase} aria-live="polite">{resultText}</div>
       <div className="crash-cashout-note">Your bet is returned only when you cash out in time.</div>
     </section>
@@ -138,7 +153,8 @@ export function CrashGame({ credits, locked, startRound, finishRound, gameAction
       <div className="crash-chart-grid" aria-hidden="true"><i /><i /><i /><i /></div>
       <div className="crash-chart-label">{phase === 'running' ? 'IN FLIGHT' : phase === 'crashed' ? 'CRASHED' : phase === 'cashed' ? 'CASHED OUT' : 'READY'}</div>
       <motion.strong key={plotKey} className="crash-multiplier" animate={{ color: phase === 'crashed' ? '#ff6475' : '#60a9ff', scale: phase === 'running' && !reduced ? [1, 1.035, 1] : 1 }} transition={{ scale: { duration: 1.4, repeat: phase === 'running' ? Infinity : 0 } }}>{multiplierText(multiplier)}</motion.strong>
-      <svg className="crash-chart" viewBox="0 0 600 380" preserveAspectRatio="none" aria-hidden="true"><path className="crash-fill" d={`${graph} L${chartX.toFixed(1)},380 L24,380 Z`} /><path className="crash-line" d={graph} /><circle className="crash-dot" cx={chartX.toFixed(1)} cy={chartY} r="6" /></svg>
+      <svg className="crash-chart" viewBox="0 0 600 380" preserveAspectRatio="none" aria-hidden="true"><path className="crash-fill" d={`${graph} L${chartX.toFixed(1)},380 L24,380 Z`} /><path className="crash-line" d={graph} /></svg>
+      <span className="crash-dot" aria-hidden="true" style={{ left: `${(chartX / 600) * 100}%`, top: `${(chartY / 380) * 100}%` }} />
     </section>
   </div>;
 }

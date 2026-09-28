@@ -4,6 +4,8 @@ import { Button } from './ui.jsx';
 import { casinoSound } from '../logic/sound.js';
 import { formatCredits } from '../logic/storage.js';
 import { formatWheelMultiplier, multiplyWheelMultiplier, spinWheel, wheelCashout, wheelSegments, WHEEL_MAX_WINS, WHEEL_RISKS } from '../logic/wheel.js';
+import { GameModeHeader, AutoRollSettings } from './AutoRoll.jsx';
+import { useAutoRoll } from '../useAutoRoll.js';
 
 const segmentAngle = 360 / 25;
 const polar = (radius, degrees) => {
@@ -17,7 +19,7 @@ const segmentPath = (index) => {
   return `M${x1},${y1} A188,188 0 0 1 ${x2},${y2} L${x3},${y3} A173,173 0 0 0 ${x4},${y4} Z`;
 };
 
-export function WheelGame({ credits, locked, startRound, finishRound, gameAction }) {
+export function WheelGame({ credits, locked, startRound, finishRound, gameAction, active = true }) {
   const [risk, setRisk] = useState('low');
   const [stakeText, setStakeText] = useState('10');
   const [phase, setPhase] = useState('ready');
@@ -34,6 +36,9 @@ export function WheelGame({ credits, locked, startRound, finishRound, gameAction
   const winsRef = useRef(0);
   const [wins, setWins] = useState(0);
   const reduced = useReducedMotion();
+  const auto = useAutoRoll({ credits, active });
+  const autoRunningRef = useRef(auto.running);
+  autoRunningRef.current = auto.running;
   const stake = Number(stakeText);
   const riskConfig = WHEEL_RISKS[risk];
   const segments = useMemo(() => wheelSegments(risk), [risk]);
@@ -65,6 +70,7 @@ export function WheelGame({ credits, locked, startRound, finishRound, gameAction
         setPhase('busted');
         casinoSound('loss');
         finishRound({ game: 'wheel', summary: 'Lost', stake: roundStake.current, net: -roundStake.current, won: false, payout: 0, risk: roundRisk.current, outcome: 'miss' }, 0);
+        auto.finish(-roundStake.current);
         return;
       }
       const nextMultiplier = multiplyWheelMultiplier(multiplierRef.current, outcome.multiplier);
@@ -77,23 +83,33 @@ export function WheelGame({ credits, locked, startRound, finishRound, gameAction
         const payout = wheelCashout(roundStake.current, nextMultiplier);
         setPhase('cashed');
         finishRound({ game: 'wheel', summary: formatWheelMultiplier(nextMultiplier), stake: roundStake.current, net: payout - roundStake.current, won: true, payout, risk: roundRisk.current, autoCashout: true }, payout);
-      } else setPhase('playing');
+        auto.finish(payout - roundStake.current);
+      } else {
+        setPhase('playing');
+        if (autoRunningRef.current) window.setTimeout(() => { if (autoRunningRef.current) spinRef.current(); }, 100);
+      }
     }, reduced ? 35 : 2550);
   };
 
-  const placeBet = async () => {
-    if (locked || inRound || busyRef.current || !Number.isFinite(stake) || stake < 10 || stake > credits) return;
+  const placeBet = async (autoBet = null) => {
+    const bet = autoBet ?? stake;
+    if (locked || inRound || busyRef.current || !Number.isFinite(bet) || bet < 10 || bet > credits) return;
     busyRef.current = true;
-    const round = await startRound(stake, 'wheel', { risk });
+    const round = await startRound(bet, 'wheel', { risk });
     busyRef.current = false;
-    if (!round) return;
-    roundStake.current = stake;
+    if (!round) { if (autoBet !== null) auto.stop(); return; }
+    roundStake.current = bet;
     roundRisk.current = risk;
     winsRef.current = 0; setWins(0);
     multiplierRef.current = 1;
     setMultiplier(1);
     spin(round);
   };
+  const placeBetRef = useRef(placeBet);
+  placeBetRef.current = placeBet;
+  const spinRef = useRef(spin);
+  spinRef.current = spin;
+  const startAuto = () => auto.start(stakeText, setStakeText, (amount) => placeBetRef.current(amount));
 
   const cashOut = async () => {
     if (phase !== 'playing' || busyRef.current) return;
@@ -105,6 +121,7 @@ export function WheelGame({ credits, locked, startRound, finishRound, gameAction
     setPhase('cashed');
     casinoSound('win');
     finishRound({ game: 'wheel', summary: formatWheelMultiplier(multiplierRef.current), stake: roundStake.current, net: payout - roundStake.current, won: payout > roundStake.current, payout, risk: roundRisk.current, outcome: lastResult?.multiplier }, payout);
+    auto.finish(payout - roundStake.current);
     setBusy(false);
     busyRef.current = false;
   };
@@ -112,11 +129,13 @@ export function WheelGame({ credits, locked, startRound, finishRound, gameAction
   return <div className="wheel-game">
     <div className="wheel-game-layout">
       <section className="wheel-controls" aria-label="Wheel controls">
-        <label className="stake-field"><span>Bet</span><div className="stake-input-wrap"><input aria-label="Wheel bet" type="number" min="10" step="1" value={stakeText} onChange={(event) => setStakeText(event.target.value)} disabled={locked || inRound || busy} /><span>CR</span></div></label>
-        <div className="wheel-risk-field"><span>Risk</span><div className="wheel-risk-picker" role="group" aria-label="Wheel risk">{Object.entries(WHEEL_RISKS).map(([key, option]) => <button key={key} type="button" className={risk === key ? 'selected' : ''} aria-pressed={risk === key} disabled={locked || inRound || busy} onClick={() => setRisk(key)}>{option.label}</button>)}</div></div>
-        {!inRound ? <Button className="game-action-button" variant="primary" onClick={placeBet} disabled={locked || busy || !Number.isFinite(stake) || stake < 10 || stake > credits}>{phase === 'ready' || phase === 'busted' || phase === 'cashed' ? 'Bet & spin' : 'Spin'}</Button> : <div className="wheel-action-row">
-          <Button className="game-action-button" variant="secondary" onClick={cashOut} disabled={phase !== 'playing' || busy}>Cash out</Button>
-          <Button className="game-action-button" variant="primary" onClick={() => spin()} disabled={phase !== 'playing' || busy}>Spin again</Button>
+        <GameModeHeader label="WHEEL" mode={auto.mode} onChange={auto.setMode} disabled={locked || inRound || busy || auto.running} />
+        <label className="stake-field"><span>{auto.mode === 'auto' ? 'Bet amount' : 'Bet'}</span><div className="stake-input-wrap"><input aria-label="Wheel bet" type="number" min="10" step="1" value={stakeText} onChange={(event) => setStakeText(event.target.value)} disabled={locked || inRound || busy || auto.running} /><span>CR</span></div></label>
+        {auto.mode === 'auto' && <AutoRollSettings auto={auto} onStart={startAuto} disabled={auto.running} />}
+        <div className="wheel-risk-field"><span>Risk</span><div className="wheel-risk-picker" role="group" aria-label="Wheel risk">{Object.entries(WHEEL_RISKS).map(([key, option]) => <button key={key} type="button" className={risk === key ? 'selected' : ''} aria-pressed={risk === key} disabled={locked || inRound || busy || auto.running} onClick={() => setRisk(key)}>{option.label}</button>)}</div></div>
+        {!inRound ? auto.mode === 'manual' ? <Button className="game-action-button" variant="primary" onClick={() => placeBet()} disabled={locked || busy || !Number.isFinite(stake) || stake < 10 || stake > credits}>{phase === 'ready' || phase === 'busted' || phase === 'cashed' ? 'Bet & spin' : 'Spin'}</Button> : null : <div className="wheel-action-row">
+          <Button className="game-action-button" variant="secondary" onClick={cashOut} disabled={phase !== 'playing' || busy || auto.running}>Cash out</Button>
+          {!(auto.mode === 'auto' && auto.running) && <Button className="game-action-button" variant="primary" onClick={() => spin()} disabled={phase !== 'playing' || busy}>Spin again</Button>}
         </div>}
         <span className="wheel-round-status" aria-live="polite">{phase === 'spinning' ? 'Spinning' : phase === 'busted' ? 'Lost' : phase === 'cashed' ? 'Cashed out' : phase === 'playing' ? `${wins} / 8 wins · ${formatWheelMultiplier(multiplier)}` : ''}</span>
       </section>
